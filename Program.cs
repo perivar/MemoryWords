@@ -111,9 +111,9 @@ namespace MemoryWords
 			return -1;
 		}
 		
-		private static void FindMatchingWords(string everything, byte[] allDigits, byte[] searchDigits, int wordCount) {
+		private static void FindMatchingWords(string everything, byte[] allDigits, byte[] searchDigits, int wordCount, ref int nextPos) {
 			
-			Console.WriteLine("Searching for {0}", string.Join(",", searchDigits));
+			//Console.WriteLine("Searching for {0}", string.Join(",", searchDigits));
 			
 			var regExpression = GetRegexp(searchDigits);
 			var matches = regExpression.Matches(everything);
@@ -131,19 +131,13 @@ namespace MemoryWords
 				int startPos = SearchBytes(allDigits, searchDigits);
 				
 				// extract the remainding bytes
-				int nextPos = startPos + searchDigits.Length;
-				int length = allDigits.Length - nextPos;
-				if (nextPos <  allDigits.Length) {
-					var restDigits = new byte[length];
-					Array.Copy(allDigits, nextPos, restDigits, 0, length);
-					FindMatchingWords(everything, allDigits, restDigits, wordCount + 1);
-				}
+				nextPos = startPos + searchDigits.Length;
 			} else {
 				//Console.WriteLine("No matches, trying again...");
 				
 				// reduce the number of digits and try again
 				searchDigits = searchDigits.Take(searchDigits.Count() - 1).ToArray();
-				FindMatchingWords(everything, allDigits, searchDigits, wordCount);
+				FindMatchingWords(everything, allDigits, searchDigits, wordCount, ref nextPos);
 			}
 		}
 
@@ -157,8 +151,9 @@ namespace MemoryWords
 			//byte[] digits = {4,6,2,2}; // regionen
 			//byte[] digits = {7,4,8,1,8,4,7,1}; // kraftverket
 			
-			byte[] digits = Digits("231578963120");
-			//byte[] digits = Digits("314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651");
+			//byte[] digits = Digits("231578963120");
+			byte[] digits = Digits("314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651");
+			//byte[] digits = Digits("314159265358979");
 			
 			var Latin1 = Encoding.GetEncoding("iso-8859-1");
 			const string inputFile = @"dict\norwegian.txt";
@@ -167,8 +162,14 @@ namespace MemoryWords
 			// divide into sections of x digits
 			const int chunkSize = 10;
 			byte[] buffer;
-			for(int i = 0; i < digits.Length; i+=chunkSize)
+			int nextPos = 0;
+			int prevPos = 0;
+			
+			for(int i = 0; i < digits.Length; i++)
 			{
+				i = prevPos + nextPos;
+				prevPos += nextPos;
+
 				if (chunkSize + i < digits.Length) {
 					// use full chunk size
 					buffer = new byte[chunkSize];
@@ -176,10 +177,12 @@ namespace MemoryWords
 				} else {
 					// use the remaining number of digits
 					int length = digits.Length - i;
+					if (length == 0) break;
 					buffer = new byte[length];
 					Array.Copy(digits, i, buffer, 0, length);
 				}
-				FindMatchingWords(everything, buffer, buffer, 1);
+				FindMatchingWords(everything, buffer, buffer, 1, ref nextPos);
+				Console.WriteLine("------------");
 			}
 			
 			Console.Write("Press any key to continue . . . ");
