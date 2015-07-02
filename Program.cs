@@ -115,7 +115,7 @@ namespace MemoryWords
 		#region from digits into words
 		private static void LookupWords(string dictionary, byte[] searchDigits, ref int noDigitsProcessed, ref List<Word> wordList, bool outputProgess = false) {
 			
-			if (outputProgess) Console.WriteLine("Searching for {0}", string.Join(",", searchDigits));
+			if (outputProgess) Console.WriteLine("Searching for chunk {0}", string.Join(",", searchDigits));
 			
 			var regExpression = GetRegexp(searchDigits);
 			var matches = regExpression.Matches(dictionary);
@@ -135,7 +135,10 @@ namespace MemoryWords
 				Console.WriteLine();
 			} else {
 				// reduce the number of digits and try again
-				searchDigits = searchDigits.Take(searchDigits.Count() - 1).ToArray();
+				int newLength = searchDigits.Count() - 1;
+				if (newLength <= 0) return;
+				
+				searchDigits = searchDigits.Take(newLength).ToArray();
 				LookupWords(dictionary, searchDigits, ref noDigitsProcessed, ref wordList, outputProgess);
 			}
 		}
@@ -276,7 +279,7 @@ namespace MemoryWords
 		public static void Main(string[] args)
 		{
 			// test code: 53138552
-			//byte[] digits = Digits(53138552);
+			byte[] digits = Digits(53138552);
 			//byte[] digits = Digits(5511);
 			//byte[] digits = {7,1}; // akutt
 			//byte[] digits = {3,1,4}; // amatør
@@ -285,19 +288,22 @@ namespace MemoryWords
 			//byte[] digits = {7,4,8,1,8,4,7,1}; // kraftverket
 			
 			//byte[] digits = Digits("231578963120");
-			byte[] digits = Digits("314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651");
+			//byte[] digits = Digits("314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651");
 			//byte[] digits = Digits("314159265358979");
 			//byte[] digits = Digits("05721184084105791485091641940564691959501972917284624120958121584129557914181849214842841226184084612846419491230290748494107908502039150121418543492858012042158641202054157914203849850032319410790149284059511014718531484972");
 			
 			const string inputFile = @"dict\norwegian.txt";
 			string dictionary = File.ReadAllText(inputFile, _isoLatin1Encoding);
+			var wordList = FindWords(dictionary, digits, true);
 
-			//var wordList = FindWords(dictionary, digits, true);
-			//WriteCSV(@"pi.csv", digits, wordList);
-						
-			string sentence = File.ReadAllText("pi.txt", _isoLatin1Encoding);
-			byte[] foundDigits = ParseDigits(sentence);
-			WriteCSV(@"pi2.csv", foundDigits, null);
+			//var nsfWords = new NSFOrdliste(@"dict\NSF-ordlisten\NSF-ordlisten.txt");
+			//var wordList = FindWords(nsfWords.Nouns, digits, true);
+			
+			WriteCSV(@"pi.csv", digits, wordList);
+			
+			//string sentence = File.ReadAllText("pi.txt", _isoLatin1Encoding);
+			//byte[] foundDigits = ParseDigits(sentence);
+			//WriteCSV(@"pi2.csv", foundDigits, null);
 			
 			Console.Write("Press any key to continue . . . ");
 			Console.ReadKey(true);
@@ -335,4 +341,169 @@ namespace MemoryWords
 		}
 	}
 	#endregion
+	
+	class NSFOrdliste {
+		
+		string nouns; // Substantiv - an abstract or concrete entity; a person, place, thing, idea or quality
+		string adjectives; // Adjektiv - a modifier of a noun or pronoun (big, brave)
+		string pronouns; // Pronomen - a substitute for a noun or noun phrase (them, he)
+		string verbs; // Verb - an action (walk), occurrence (happen), or state of being (be)
+		string adverbs; // Adverb - a modifier of an adjective, verb, or other adverb (very, quite)
+		string prepositions; // Preposisjon - aids in syntactic contex (in, of)
+		string conjunctions; // Konjunksjon - links words, phrases, or clauses (and, but)
+		string interjections; // Interjeksjon - greeting or exclamation (Hurrah, Alas)
+		string subjunctions; // Subjunksjon – innleder bisetninger
+		string articles; // Artikkel - definiteness (the) or indefiniteness (a, an)
+		string determinatives; // Determinativ – bestemmer substantivet nærmere
+		
+		#region Getters
+		public string Nouns {
+			get {
+				return nouns;
+			}
+		}
+
+		public string Adjectives {
+			get {
+				return adjectives;
+			}
+		}
+
+		public string Pronouns {
+			get {
+				return pronouns;
+			}
+		}
+
+		public string Verbs {
+			get {
+				return verbs;
+			}
+		}
+
+		public string Adverbs {
+			get {
+				return adverbs;
+			}
+		}
+
+		public string Prepositions {
+			get {
+				return prepositions;
+			}
+		}
+
+		public string Conjunctions {
+			get {
+				return conjunctions;
+			}
+		}
+
+		public string Interjections {
+			get {
+				return interjections;
+			}
+		}
+
+		public string Subjunctions {
+			get {
+				return subjunctions;
+			}
+		}
+
+		public string Articles {
+			get {
+				return articles;
+			}
+		}
+
+		public string Determinatives {
+			get {
+				return determinatives;
+			}
+		}
+		#endregion
+		
+		public NSFOrdliste(string filePath) {
+			
+			// initialise HashSets
+			var mynouns = new HashSet<string>();
+			var myadjectives = new HashSet<string>();
+			var mypronouns = new HashSet<string>();
+			var myverbs = new HashSet<string>();
+			var myadverbs = new HashSet<string>();
+			var myprepositions = new HashSet<string>();
+			var myconjunctions = new HashSet<string>();
+			var myinterjections = new HashSet<string>();
+			var mysubjunctions = new HashSet<string>();
+			var myarticles = new HashSet<string>();
+			var mydeterminatives = new HashSet<string>();
+			
+			// read file
+			foreach (var line in File.ReadLines(filePath))
+			{
+				if (string.IsNullOrEmpty(line)) continue;
+
+				var elements = line.Split(new String[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+				string word = elements.First().ToLower();
+				string wordClass = elements.Last();
+				
+				switch (wordClass) {
+					case "subst":
+						mynouns.Add(word);
+						break;
+					case "prep":
+						myprepositions.Add(word);
+						break;
+					case "verb":
+						myverbs.Add(word);
+						break;
+					case "adj":
+					case "adjektiv":
+						myadjectives.Add(word);
+						break;
+					case "adv":
+						myadverbs.Add(word);
+						break;
+					case "konj":
+						myconjunctions.Add(word);
+						break;
+					case "interj":
+						myinterjections.Add(word);
+						break;
+					case "sbu":
+						mysubjunctions.Add(word);
+						break;
+					case "det":
+						mydeterminatives.Add(word);
+						break;
+					case "pron":
+						mypronouns.Add(word);
+						break;
+					case "verbalsubst":
+					case "numeral":
+					case "nominal":
+					case "musikkuttr":
+					case "CLB":
+						break;
+					default:
+						Console.WriteLine("woops {0}", wordClass);
+						break;
+				}
+			}
+			
+			// load into strings
+			nouns = string.Join("\r\n", mynouns.ToArray());
+			adjectives = string.Join("\r\n", myadjectives.ToArray());
+			pronouns = string.Join("\r\n", mypronouns.ToArray());
+			verbs = string.Join("\r\n", myverbs.ToArray());
+			adverbs = string.Join("\r\n", myadverbs.ToArray());
+			prepositions = string.Join("\r\n", myprepositions.ToArray());
+			conjunctions = string.Join("\r\n", myconjunctions.ToArray());
+			interjections = string.Join("\r\n", myinterjections.ToArray());
+			subjunctions = string.Join("\r\n", mysubjunctions.ToArray());
+			articles = string.Join("\r\n", myarticles.ToArray());
+			determinatives = string.Join("\r\n", mydeterminatives.ToArray());
+		}
+	}
 }

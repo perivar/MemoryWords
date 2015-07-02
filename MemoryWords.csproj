@@ -59,12 +59,18 @@
     <Content Include="dict\norwegian_large.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="dict\NSF-ordlisten\gpl.txt" />
+    <Content Include="dict\NSF-ordlisten\NSF-ordlisten.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="dict\NSF-ordlisten\opphavsrett.txt" />
     <None Include="doc\HUNSPELL - Unmunch All Norwegian Words.txt" />
     <None Include="doc\INSTALL HUNSPELL WINDOWS.txt" />
     <None Include="doc\Notepad++ Remove Duplicate Lines.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="dict" />
+    <Folder Include="dict\NSF-ordlisten" />
     <Folder Include="doc" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
