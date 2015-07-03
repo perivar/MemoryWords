@@ -48,8 +48,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FrequencyLists.cs" />
+    <Compile Include="NSFOrdliste.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DigitsWords.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -64,6 +67,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="dict\NSF-ordlisten\opphavsrett.txt" />
+    <Content Include="dict\ord10k.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="dict\wiktionary_frequency_list.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="doc\HUNSPELL - Unmunch All Norwegian Words.txt" />
     <None Include="doc\INSTALL HUNSPELL WINDOWS.txt" />
     <None Include="doc\Notepad++ Remove Duplicate Lines.txt" />

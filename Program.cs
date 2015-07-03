@@ -12,6 +12,14 @@ namespace MemoryWords
 		static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
 		const string _vowels = "[aeiouyæøå]"; // vocals and non-used characters
 		
+		public static void ClearCurrentConsoleLine()
+		{
+			int currentLineCursor = Console.CursorTop;
+			Console.SetCursorPosition(0, Console.CursorTop);
+			Console.Write(new string(' ', Console.WindowWidth));
+			Console.SetCursorPosition(0, currentLineCursor);
+		}
+		
 		#region Methods to convert string and int to byte array
 		static byte[] Digits(string str)
 		{
@@ -113,26 +121,32 @@ namespace MemoryWords
 		#endregion
 		
 		#region from digits into words
-		private static void LookupWords(string dictionary, byte[] searchDigits, ref int noDigitsProcessed, ref List<Word> wordList, bool outputProgess = false) {
+		private static void LookupWords(string dictionary, byte[] searchDigits, ref int noDigitsProcessed, ref List<DigitsWords> wordList, bool outputProgess = false) {
 			
-			if (outputProgess) Console.WriteLine("Searching for chunk {0}", string.Join(",", searchDigits));
+			if (outputProgess) {
+				ClearCurrentConsoleLine();
+				Console.Write("Searching for {0}\r", string.Join(",", searchDigits));
+			}
 			
 			var regExpression = GetRegexp(searchDigits);
 			var matches = regExpression.Matches(dictionary);
 			if (matches.Count > 0) {
 				noDigitsProcessed = searchDigits.Length; // store the number of digits already processed
 				
-				if (outputProgess) Console.WriteLine("Found {0}", string.Join(",", searchDigits));
+				if (outputProgess) {
+					ClearCurrentConsoleLine();
+					Console.Write("Found {0}: ", string.Join(",", searchDigits));
+				}
 				
-				var word = new Word(searchDigits);
+				var word = new DigitsWords(searchDigits);
 				wordList.Add(word);
 				foreach(Match match in matches)
 				{
 					//Console.WriteLine("{0} found at position {1}", match.Groups[1], match.Index);
-					if (outputProgess) Console.Write("{0}\n", match.Groups[1].Value);
+					if (outputProgess) Console.Write("{0}  ", match.Groups[1].Value);
 					word.WordCandidates.Add(match.Groups[1].Value);
 				}
-				Console.WriteLine();
+				if (outputProgess) Console.Write("\n");
 			} else {
 				// reduce the number of digits and try again
 				int newLength = searchDigits.Count() - 1;
@@ -143,15 +157,15 @@ namespace MemoryWords
 			}
 		}
 
-		public static List<Word> FindWords(string dictionary, byte[] digits, bool outputProgess = false) {
+		public static List<DigitsWords> FindWords(string dictionary, byte[] digits, bool outputProgess = false) {
 			
-			if (outputProgess) Console.WriteLine("Searching for {0}", string.Join(",", digits));
+			if (outputProgess) Console.WriteLine("Converting into words: {0}", string.Join(",", digits));
 			
 			// divide into sections of x digits
 			const int chunkSize = 8;
 			
 			// variables
-			var wordList = new List<Word>();
+			var wordList = new List<DigitsWords>();
 			byte[] chunk;
 			int processedNew = 0;
 			int processedAlready = 0;
@@ -176,6 +190,8 @@ namespace MemoryWords
 				LookupWords(dictionary, chunk, ref processedNew, ref wordList, outputProgess);
 				if (processedNew == 0) break; // we found the last word
 			}
+			
+			if (outputProgess) Console.WriteLine();
 			
 			return wordList;
 		}
@@ -253,7 +269,7 @@ namespace MemoryWords
 		}
 		#endregion
 		
-		private static void WriteCSV(string filePath, byte[] digits, List<Word> wordList) {
+		private static void WriteCSV(string filePath, byte[] digits, List<DigitsWords> wordList) {
 			
 			const string columnSeparator = ",";
 			
@@ -279,7 +295,7 @@ namespace MemoryWords
 		public static void Main(string[] args)
 		{
 			// test code: 53138552
-			byte[] digits = Digits(53138552);
+			//byte[] digits = Digits(53138552);
 			//byte[] digits = Digits(5511);
 			//byte[] digits = {7,1}; // akutt
 			//byte[] digits = {3,1,4}; // amatør
@@ -288,18 +304,40 @@ namespace MemoryWords
 			//byte[] digits = {7,4,8,1,8,4,7,1}; // kraftverket
 			
 			//byte[] digits = Digits("231578963120");
-			//byte[] digits = Digits("314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651");
+			byte[] digits = Digits("314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651");
 			//byte[] digits = Digits("314159265358979");
 			//byte[] digits = Digits("05721184084105791485091641940564691959501972917284624120958121584129557914181849214842841226184084612846419491230290748494107908502039150121418543492858012042158641202054157914203849850032319410790149284059511014718531484972");
 			
-			const string inputFile = @"dict\norwegian.txt";
-			string dictionary = File.ReadAllText(inputFile, _isoLatin1Encoding);
-			var wordList = FindWords(dictionary, digits, true);
+			#region Run Tests
+			const string inputFile10k = @"dict\ord10k.csv";
+			var freqList10k = new FrequencyLists();
+			freqList10k.Read10KFormat(inputFile10k);
+			var wordList10k = FindWords(freqList10k.Words, digits, true);
+			WriteCSV(@"pi_list10k.csv", digits, wordList10k);
 
-			//var nsfWords = new NSFOrdliste(@"dict\NSF-ordlisten\NSF-ordlisten.txt");
-			//var wordList = FindWords(nsfWords.Nouns, digits, true);
+			const string inputFile5k = @"dict\wiktionary_frequency_list.txt";
+			var freqList5k = new FrequencyLists();
+			freqList5k.Read5KFormat(inputFile5k);
+			var wordList5k = FindWords(freqList5k.Words, digits, true);
+			WriteCSV(@"pi_list5k.csv", digits, wordList5k);
 			
-			WriteCSV(@"pi.csv", digits, wordList);
+			const string inputFileSmall = @"dict\norwegian.txt";
+			string dictionarySmall = File.ReadAllText(inputFileSmall, _isoLatin1Encoding);
+			var wordListSmall = FindWords(dictionarySmall, digits, true);
+			WriteCSV(@"pi_small_list.csv", digits, wordListSmall);
+
+			// THESE ARE SLOW
+			/*
+			var nsfWords = new NSFOrdliste(@"dict\NSF-ordlisten\NSF-ordlisten.txt");
+			var wordListNSF = FindWords(nsfWords.Nouns, digits, true);
+			WriteCSV(@"pi_nsf_list.csv", digits, wordListNSF);
+
+			const string inputFileLarge = @"dict\norwegian_large.txt";
+			string dictionaryLarge = File.ReadAllText(inputFileLarge, _isoLatin1Encoding);
+			var wordListLarge = FindWords(dictionaryLarge, digits, true);
+			WriteCSV(@"pi_large_list.csv", digits, wordListLarge);
+			 */
+			#endregion
 			
 			//string sentence = File.ReadAllText("pi.txt", _isoLatin1Encoding);
 			//byte[] foundDigits = ParseDigits(sentence);
@@ -310,200 +348,5 @@ namespace MemoryWords
 		}
 	}
 	
-	#region Word class
-	class Word {
-		byte[] digits;
-		readonly List<string> wordCandidates = new List<string>();
-		
-		public Word(byte[] digits) {
-			this.digits = digits;
-		}
-		
-		public byte[] Digits {
-			get {
-				return digits;
-			}
-		}
-
-		public string DigitsAsString() {
-			return string.Join(",", digits);
-		}
-		
-		public List<string> WordCandidates {
-			get {
-				return wordCandidates;
-			}
-		}
-		
-		public override string ToString()
-		{
-			return string.Format("[{0}] Candidates={1}", string.Join(",", digits), wordCandidates.Count);
-		}
-	}
-	#endregion
 	
-	class NSFOrdliste {
-		
-		string nouns; // Substantiv - an abstract or concrete entity; a person, place, thing, idea or quality
-		string adjectives; // Adjektiv - a modifier of a noun or pronoun (big, brave)
-		string pronouns; // Pronomen - a substitute for a noun or noun phrase (them, he)
-		string verbs; // Verb - an action (walk), occurrence (happen), or state of being (be)
-		string adverbs; // Adverb - a modifier of an adjective, verb, or other adverb (very, quite)
-		string prepositions; // Preposisjon - aids in syntactic contex (in, of)
-		string conjunctions; // Konjunksjon - links words, phrases, or clauses (and, but)
-		string interjections; // Interjeksjon - greeting or exclamation (Hurrah, Alas)
-		string subjunctions; // Subjunksjon – innleder bisetninger
-		string articles; // Artikkel - definiteness (the) or indefiniteness (a, an)
-		string determinatives; // Determinativ – bestemmer substantivet nærmere
-		
-		#region Getters
-		public string Nouns {
-			get {
-				return nouns;
-			}
-		}
-
-		public string Adjectives {
-			get {
-				return adjectives;
-			}
-		}
-
-		public string Pronouns {
-			get {
-				return pronouns;
-			}
-		}
-
-		public string Verbs {
-			get {
-				return verbs;
-			}
-		}
-
-		public string Adverbs {
-			get {
-				return adverbs;
-			}
-		}
-
-		public string Prepositions {
-			get {
-				return prepositions;
-			}
-		}
-
-		public string Conjunctions {
-			get {
-				return conjunctions;
-			}
-		}
-
-		public string Interjections {
-			get {
-				return interjections;
-			}
-		}
-
-		public string Subjunctions {
-			get {
-				return subjunctions;
-			}
-		}
-
-		public string Articles {
-			get {
-				return articles;
-			}
-		}
-
-		public string Determinatives {
-			get {
-				return determinatives;
-			}
-		}
-		#endregion
-		
-		public NSFOrdliste(string filePath) {
-			
-			// initialise HashSets
-			var mynouns = new HashSet<string>();
-			var myadjectives = new HashSet<string>();
-			var mypronouns = new HashSet<string>();
-			var myverbs = new HashSet<string>();
-			var myadverbs = new HashSet<string>();
-			var myprepositions = new HashSet<string>();
-			var myconjunctions = new HashSet<string>();
-			var myinterjections = new HashSet<string>();
-			var mysubjunctions = new HashSet<string>();
-			var myarticles = new HashSet<string>();
-			var mydeterminatives = new HashSet<string>();
-			
-			// read file
-			foreach (var line in File.ReadLines(filePath))
-			{
-				if (string.IsNullOrEmpty(line)) continue;
-
-				var elements = line.Split(new String[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-				string word = elements.First().ToLower();
-				string wordClass = elements.Last();
-				
-				switch (wordClass) {
-					case "subst":
-						mynouns.Add(word);
-						break;
-					case "prep":
-						myprepositions.Add(word);
-						break;
-					case "verb":
-						myverbs.Add(word);
-						break;
-					case "adj":
-					case "adjektiv":
-						myadjectives.Add(word);
-						break;
-					case "adv":
-						myadverbs.Add(word);
-						break;
-					case "konj":
-						myconjunctions.Add(word);
-						break;
-					case "interj":
-						myinterjections.Add(word);
-						break;
-					case "sbu":
-						mysubjunctions.Add(word);
-						break;
-					case "det":
-						mydeterminatives.Add(word);
-						break;
-					case "pron":
-						mypronouns.Add(word);
-						break;
-					case "verbalsubst":
-					case "numeral":
-					case "nominal":
-					case "musikkuttr":
-					case "CLB":
-						break;
-					default:
-						Console.WriteLine("woops {0}", wordClass);
-						break;
-				}
-			}
-			
-			// load into strings
-			nouns = string.Join("\r\n", mynouns.ToArray());
-			adjectives = string.Join("\r\n", myadjectives.ToArray());
-			pronouns = string.Join("\r\n", mypronouns.ToArray());
-			verbs = string.Join("\r\n", myverbs.ToArray());
-			adverbs = string.Join("\r\n", myadverbs.ToArray());
-			prepositions = string.Join("\r\n", myprepositions.ToArray());
-			conjunctions = string.Join("\r\n", myconjunctions.ToArray());
-			interjections = string.Join("\r\n", myinterjections.ToArray());
-			subjunctions = string.Join("\r\n", mysubjunctions.ToArray());
-			articles = string.Join("\r\n", myarticles.ToArray());
-			determinatives = string.Join("\r\n", mydeterminatives.ToArray());
-		}
-	}
 }
