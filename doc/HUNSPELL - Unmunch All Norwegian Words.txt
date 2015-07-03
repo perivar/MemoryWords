@@ -1,9 +1,14 @@
+Step 1: Install Hunspell (see INSTALL HUNSPELL WINDOWS.txt)
+
+Step 2:
 Download dictionary-no-no-2.1.zip from 
 http://extensions.openoffice.org/en/projectrelease/norwegian-dictionaries-spell-checker-thesaurus-and-hyphenation-21
 
 and install to hunspell share folder.
 
-Hunspell comes with the unmunch command, which will create all word forms. You can call it like this:
+Step 3: 
+Hunspell comes with the unmunch command, which will create all word forms. 
+You can call it like this:
 unmunch en_GB.dic en_GB.aff
 
 I.e. for all norwegian words:

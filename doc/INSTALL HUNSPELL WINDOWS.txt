@@ -8,11 +8,11 @@ all on Windows.
 
        http://sourceforge.net/projects/ezwinports/files
 
-       I have hunspell-1.3.2-2-w32-bin.zip.
+       I have hunspell-1.3.2-3-w32-bin.zip
 
     b. Extract the contents of the zipfile to any directory. I chose
 
-       D:\hunspell
+       C:\Program Files (x86)\hunspell-1.3.2-3-w32-bin
 
 ==== Step 2: add hunspell to Windows PATH
 
@@ -31,7 +31,7 @@ how:
 
        which on my system is
 
-       ;D:\hunspell\bin
+       ;C:\Program Files (x86)\hunspell-1.3.2-3-w32-bin\bin
 
     d. Click your way out: OK --> OK --> OK --> close the control panel
        window.
@@ -46,10 +46,17 @@ There are many sources of dictionaries.
 
        On my system that is
 
-       D:\hunspell\share\hunspell
+       C:\Program Files (x86)\hunspell-1.3.2-3-w32-bin\share\hunspell
 
     b. I added these dictionaries:
 
        de_DE_frami (de_DE_frami.aff and de_DE_frami.dic)
        en_US (en_US.aff and en_US.dic)
        fr-classique (fr-classique.aff and fr-classique.dic)
+
+	PIN: I added these
+	   hyph_nb_NO.dic
+	   nb_NO.aff
+	   nb_NO.dic
+	   th_nb_NO_v2.dat
+	   th_nb_NO_v2.idx

@@ -1,0 +1,22 @@
+Aksis: Norsk tekstarkiv
+http://clu.uni.no/nta/
+- ord10k.txt
+- ord10000.txt
+
+scandinavian-keyboard
+Word list for Norwegian dictionary 1.0
+https://code.google.com/p/scandinavian-keyboard/downloads/detail?name=norwegian.txt
+- norwegian.txt
+
+Wiktionary:Frequency lists/Norwegian Bokmål wordlist
+https://en.wiktionary.org/wiki/Wiktionary:Frequency_lists/Norwegian_Bokm%C3%A5l_wordlist
+- wiktionary_frequency_list.txt
+
+Open Office Dictionary
+http://extensions.openoffice.org/en/projectrelease/norwegian-dictionaries-spell-checker-thesaurus-and-hyphenation-21
+Using unmunch to build all word forms (very large)
+- norwegian_large.txt
+
+Norsk Scrabble Forbund - Ordlisten
+http://www2.scrabbleforbundet.no/?attachment_id=1620
+- NSF-ordlisten.txt

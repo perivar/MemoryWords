@@ -7,6 +7,7 @@ namespace MemoryWords
 {
 	public class FrequencyLists
 	{
+		static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
 		List<WordElement> wordElements = new List<WordElement>();
 		string words;
 
@@ -21,7 +22,7 @@ namespace MemoryWords
 			int lineCounter = 0;
 			
 			// read in the dictionary file in the ord10k.csv format
-			foreach (var line in File.ReadLines(filePath)) {
+			foreach (var line in File.ReadLines(filePath, _isoLatin1Encoding)) {
 				lineCounter++;
 				
 				// skip header
@@ -37,7 +38,7 @@ namespace MemoryWords
 				                          }, StringSplitOptions.RemoveEmptyEntries);
 				
 				// ignore words with only one letter or digit
-				if (elements[4].Length < 2) continue;
+				//if (elements[4].Length < 2) continue;
 				
 				var word = new WordElement();
 				wordElements.Add(word);
@@ -73,7 +74,7 @@ namespace MemoryWords
 				                          }, StringSplitOptions.RemoveEmptyEntries);
 				
 				// ignore words with only one letter or digit
-				if (elements[0].Length < 2) continue;
+				//if (elements[0].Length < 2) continue;
 				
 				var word = new WordElement();
 				wordElements.Add(word);
@@ -89,6 +90,42 @@ namespace MemoryWords
 			
 			words = sb.ToString();
 		}
+		
+		public void Read10000Format(string filePath) {
+
+			var sb = new StringBuilder();
+			int lineCounter = 0;
+			
+			// read in the dictionary file in the wiktionary_frequency_list.txt format
+			foreach (var line in File.ReadLines(filePath, _isoLatin1Encoding)) {
+				lineCounter++;
+				
+				// ignore blank lines
+				if (string.IsNullOrEmpty(line))
+					continue;
+				
+				// parse
+				var elements = line.Split(new String[] {
+				                          	" "
+				                          }, StringSplitOptions.RemoveEmptyEntries);
+				
+				// ignore words with only one letter or digit
+				//if (elements[1].Length < 2) continue;
+				
+				var word = new WordElement();
+				wordElements.Add(word);
+				
+				word.Place = lineCounter;
+				word.Frequency = int.Parse(elements[0]);
+				word.Word = elements[1];
+				
+				// also add to the string
+				sb.Append(word.Word);
+				sb.Append("\r\n");
+			}
+			
+			words = sb.ToString();
+		}		
 	}
 
 	public class WordElement

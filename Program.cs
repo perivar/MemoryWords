@@ -140,12 +140,15 @@ namespace MemoryWords
 				
 				var word = new DigitsWords(searchDigits);
 				wordList.Add(word);
+				
+				// Parallel.ForEach did not seem to be faster
 				foreach(Match match in matches)
 				{
 					//Console.WriteLine("{0} found at position {1}", match.Groups[1], match.Index);
 					if (outputProgess) Console.Write("{0}  ", match.Groups[1].Value);
 					word.WordCandidates.Add(match.Groups[1].Value);
 				}
+				
 				if (outputProgess) Console.Write("\n");
 			} else {
 				// reduce the number of digits and try again
@@ -269,6 +272,13 @@ namespace MemoryWords
 		}
 		#endregion
 		
+		private static string WordListAsString(List<DigitsWords> wordList) {
+			var sentenceList = (from list in wordList
+			                    select list.WordCandidates.First()
+			                   );
+			return string.Join("\r\n", sentenceList);
+		}
+		
 		private static void WriteCSV(string filePath, byte[] digits, List<DigitsWords> wordList) {
 			
 			const string columnSeparator = ",";
@@ -295,7 +305,7 @@ namespace MemoryWords
 		public static void Main(string[] args)
 		{
 			// test code: 53138552
-			//byte[] digits = Digits(53138552);
+			byte[] digits = Digits(53138552);
 			//byte[] digits = Digits(5511);
 			//byte[] digits = {7,1}; // akutt
 			//byte[] digits = {3,1,4}; // amatør
@@ -304,29 +314,47 @@ namespace MemoryWords
 			//byte[] digits = {7,4,8,1,8,4,7,1}; // kraftverket
 			
 			//byte[] digits = Digits("231578963120");
-			byte[] digits = Digits("314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651");
+			//byte[] digits = Digits("314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651");
 			//byte[] digits = Digits("314159265358979");
 			//byte[] digits = Digits("05721184084105791485091641940564691959501972917284624120958121584129557914181849214842841226184084612846419491230290748494107908502039150121418543492858012042158641202054157914203849850032319410790149284059511014718531484972");
 			
 			#region Run Tests
-			const string inputFile10k = @"dict\ord10k.csv";
-			var freqList10k = new FrequencyLists();
-			freqList10k.Read10KFormat(inputFile10k);
-			var wordList10k = FindWords(freqList10k.Words, digits, true);
-			WriteCSV(@"pi_list10k.csv", digits, wordList10k);
-
 			const string inputFile5k = @"dict\wiktionary_frequency_list.txt";
 			var freqList5k = new FrequencyLists();
 			freqList5k.Read5KFormat(inputFile5k);
 			var wordList5k = FindWords(freqList5k.Words, digits, true);
 			WriteCSV(@"pi_list5k.csv", digits, wordList5k);
+			string digitsSentence5k = WordListAsString(wordList5k);
+			byte[] foundDigits5k = ParseDigits(digitsSentence5k);
+			if (!digits.SequenceEqual(foundDigits5k)) Console.WriteLine("FAILED - Not identical");
 			
-			const string inputFileSmall = @"dict\norwegian.txt";
-			string dictionarySmall = File.ReadAllText(inputFileSmall, _isoLatin1Encoding);
-			var wordListSmall = FindWords(dictionarySmall, digits, true);
-			WriteCSV(@"pi_small_list.csv", digits, wordListSmall);
-
-			// THESE ARE SLOW
+			const string inputFile10000 = @"dict\ord10000.txt";
+			var freqList10000 = new FrequencyLists();
+			freqList10000.Read10000Format(inputFile10000);
+			var wordList10000 = FindWords(freqList10000.Words, digits, true);
+			WriteCSV(@"pi_list10000.csv", digits, wordList10000);
+			string digitsSentence10000 = WordListAsString(wordList10000);
+			byte[] foundDigits10000 = ParseDigits(digitsSentence10000);
+			if (!digits.SequenceEqual(foundDigits10000)) Console.WriteLine("FAILED - Not identical");
+			
+			const string inputFile10k = @"dict\ord10k.csv";
+			var freqList10k = new FrequencyLists();
+			freqList10k.Read10KFormat(inputFile10k);
+			var wordList10k = FindWords(freqList10k.Words, digits, true);
+			WriteCSV(@"pi_list10k.csv", digits, wordList10k);
+			string digitsSentence10K = WordListAsString(wordList10k);
+			byte[] foundDigits10K = ParseDigits(digitsSentence10K);
+			if (!digits.SequenceEqual(foundDigits10K)) Console.WriteLine("FAILED - Not identical");
+			
+			const string inputFile62K = @"dict\norwegian.txt";
+			string dictionary62K = File.ReadAllText(inputFile62K, _isoLatin1Encoding);
+			var wordList62K = FindWords(dictionary62K, digits, true);
+			WriteCSV(@"pi_list62K.csv", digits, wordList62K);
+			string digitsSentence62K = WordListAsString(wordList62K);
+			byte[] foundDigits62K = ParseDigits(digitsSentence62K);
+			if (!digits.SequenceEqual(foundDigits62K)) Console.WriteLine("FAILED - Not identical");
+			
+			// THESE ARE VERY SLOW
 			/*
 			var nsfWords = new NSFOrdliste(@"dict\NSF-ordlisten\NSF-ordlisten.txt");
 			var wordListNSF = FindWords(nsfWords.Nouns, digits, true);
@@ -338,10 +366,6 @@ namespace MemoryWords
 			WriteCSV(@"pi_large_list.csv", digits, wordListLarge);
 			 */
 			#endregion
-			
-			//string sentence = File.ReadAllText("pi.txt", _isoLatin1Encoding);
-			//byte[] foundDigits = ParseDigits(sentence);
-			//WriteCSV(@"pi2.csv", foundDigits, null);
 			
 			Console.Write("Press any key to continue . . . ");
 			Console.ReadKey(true);
