@@ -1,15 +1,11 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Text;
 namespace MemoryWords
 {
 	public class FrequencyLists
 	{
 		static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
 		List<WordElement> wordElements = new List<WordElement>();
-		string words;
+		string words = "";
 
 		public string Words {
 			get {
@@ -135,7 +131,7 @@ namespace MemoryWords
 			set;
 		}
 
-		public string Word {
+		public string? Word {
 			get;
 			set;
 		}

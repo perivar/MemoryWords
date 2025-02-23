@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MemoryWords
+﻿namespace MemoryWords
 {
 	public class DigitsWords
 	{
