@@ -1,6 +1,6 @@
 ﻿namespace MemoryWords
 {
-	class NSFOrdliste
+	class NSF2012
 	{
 		// Substantiv - an abstract or concrete entity; a person, place, thing, idea or quality
 		string nouns;
@@ -104,7 +104,7 @@
 
 		#endregion
 		
-		public NSFOrdliste(string filePath)
+		public NSF2012(string filePath)
 		{
 			// initialise temporary HashSets
 			var mynouns = new HashSet<string>();
