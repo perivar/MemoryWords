@@ -10,7 +10,7 @@ The Mnemonic major system is a memory technique that converts numbers into conso
 
 The system maps numbers to consonant sounds as follows:
 
-```cs
+```code
 0 = S, Z        (think "ZERO" starts with 'Z')
 1 = T, D        (think 'T' has one downstroke)
 2 = N           (think 'N' has two downstrokes)
@@ -25,12 +25,12 @@ The system maps numbers to consonant sounds as follows:
 
 Or in Norwegian:
 
-```cs
-0 = S, Z        (tenk på "SIRKEL" eller "0" på engelsk "ZERO")
+```code
+0 = S, Z        (tenk på 'SIRKEL' eller '0' på engelsk 'ZERO')
 1 = T, D        (tenk på at 'T' har én nedstrek)
 2 = N           (tenk på at 'N' har to nedstreker)
 3 = M           (tenk på at 'M' har tre nedstreker)
-4 = R           (tenk på at "FIRE" inneholder 'R', eller "R som i rein, fire bein")
+4 = R           (tenk på at 'FIRE' inneholder 'R', eller 'R som i rein, fire bein')
 5 = L           (tenk på romertallet 'L' som er 50)
 6 = J, G        (tenk på at speilvendt 'J' ligner på '6')
 7 = K           (tenk på at 'K' inneholder to '7'-tall)
