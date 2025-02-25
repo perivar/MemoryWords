@@ -1,0 +1,4 @@
+==== Step 1: install hunspell
+brew install hunspell
+
+hunspell --version

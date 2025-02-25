@@ -1,0 +1,6 @@
+
+The munched norwegian_large.txt file contains many duplicates.
+
+This is how it is cleaned:
+Command + Shift + P to open the command palette
+Choose "Delete Duplicate Lines" from the menu

@@ -1,8 +1,8 @@
-Step 1: Install Hunspell (see INSTALL HUNSPELL WINDOWS.txt)
+Step 1: Install Hunspell (see INSTALL HUNSPELL [Platform].txt)
 
 Step 2:
-Download dictionary-no-no-2.1.zip from 
-http://extensions.openoffice.org/en/projectrelease/norwegian-dictionaries-spell-checker-thesaurus-and-hyphenation-21
+Download dictionary-no-no-2.2.zip from 
+http://extensions.openoffice.org/en/projectrelease/norwegian-dictionaries-spell-checker-thesaurus-and-hyphenation-22
 
 and install to hunspell share folder.
 

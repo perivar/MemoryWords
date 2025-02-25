@@ -1,5 +1,5 @@
 Aksis: Norsk tekstarkiv
-http://clu.uni.no/nta/
+http://korpus.uib.no/humfak/nta/
 - ord10k.txt
 - ord10000.txt
 
@@ -8,15 +8,17 @@ Word list for Norwegian dictionary 1.0
 https://code.google.com/p/scandinavian-keyboard/downloads/detail?name=norwegian.txt
 - norwegian.txt
 
-Wiktionary:Frequency lists/Norwegian Bokmål wordlist
+Wiktionary:Frequency lists/Norwegian Bokmï¿½l wordlist
 https://en.wiktionary.org/wiki/Wiktionary:Frequency_lists/Norwegian_Bokm%C3%A5l_wordlist
 - wiktionary_frequency_list.txt
 
 Open Office Dictionary
-http://extensions.openoffice.org/en/projectrelease/norwegian-dictionaries-spell-checker-thesaurus-and-hyphenation-21
+http://extensions.openoffice.org/en/projectrelease/norwegian-dictionaries-spell-checker-thesaurus-and-hyphenation-22
 Using unmunch to build all word forms (very large)
 - norwegian_large.txt
 
 Norsk Scrabble Forbund - Ordlisten
 http://www2.scrabbleforbundet.no/?attachment_id=1620
-- NSF-ordlisten.txt
+- nsf2012.txt
+https://www2.scrabbleforbundet.no/?p=4939
+- nsf2023.txt

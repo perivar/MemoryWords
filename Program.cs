@@ -9,8 +9,7 @@ namespace MemoryWords
         const string _vowels = "[aeiouyæøå]"; // vocals and non-used characters
 
         private static readonly string DictPath = Path.Combine("dict");
-        private static readonly string NSFPath = Path.Combine(DictPath, "NSF-ordlisten");
-
+        
         public static void ClearCurrentConsoleLine()
         {
             int currentLineCursor = Console.CursorTop;
@@ -397,20 +396,26 @@ namespace MemoryWords
             byte[] foundDigits62K = ParseDigits(digitsSentence62K);
             if (!digits.SequenceEqual(foundDigits62K)) Console.WriteLine("FAILED - Not identical");
 
-            Console.WriteLine("Testing using: {0}", "NSF-ordlisten.txt");
-            var nsfWords = new NSFOrdliste(Path.Combine(NSFPath, "NSF-ordlisten.txt"));
-            var wordListNSF = FindWords(nsfWords.Nouns, digits, true);
-            WriteCSV(outputDir, "pi_nsf_list.csv", digits, wordListNSF);
-
             Console.WriteLine("Testing using: {0}", "norwegian_large.txt");
             string inputFileLarge = Path.Combine(DictPath, "norwegian_large.txt");
             string dictionaryLarge = File.ReadAllText(inputFileLarge, _isoLatin1Encoding);
             var wordListLarge = FindWords(dictionaryLarge, digits, true);
             WriteCSV(outputDir, "pi_large_list.csv", digits, wordListLarge);
-            #endregion
 
-            Console.Write("Press any key to continue . . . ");
-            Console.ReadKey(true);
+            Console.WriteLine("Testing using: {0}", "nsf2012.txt");
+            var nsf2012Words = new NSFOrdliste(Path.Combine(Path.Combine(DictPath, "nsf2012"), "nsf2012.txt"));
+            var wordListNSF2012 = FindWords(nsf2012Words.Nouns, digits, true);
+            WriteCSV(outputDir, "pi_nsf2012_list.csv", digits, wordListNSF2012);
+
+            Console.WriteLine("Testing using: {0}", "nsf2023.txt");
+            string inputFileNSF2023 = Path.Combine(Path.Combine(DictPath, "nsf2023"), "nsf2023.txt");
+            string dictionaryNSF2023 = File.ReadAllText(inputFileNSF2023, _isoLatin1Encoding);
+            var wordListNSF2023 = FindWords(dictionaryNSF2023, digits, true);
+            WriteCSV(outputDir, "pi_nsf2023_list.csv", digits, wordListNSF2023);
+            string digitsSentenceNSF2023 = WordListAsString(wordListNSF2023);
+            byte[] foundDigitsNSF2023 = ParseDigits(digitsSentenceNSF2023);
+            if (!digits.SequenceEqual(foundDigitsNSF2023)) Console.WriteLine("FAILED - Not identical");
+            #endregion
         }
     }
 }
