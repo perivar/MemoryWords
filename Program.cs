@@ -1,12 +1,17 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿using System.Text;
+﻿﻿using System.Text;
 using System.Text.RegularExpressions;
 
 namespace MemoryWords
 {
     class Program
     {
-        static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
-        const string _vowels = "[aeiouyæøå]"; // vocals and non-used characters
+        private static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
+        private static readonly Encoding _utf8Encoding = Encoding.UTF8;
+
+        private const string _vowels = "[aeiouyæøå]"; // vowels and non-used characters (hwc)
+
+        private const string _zeroOrMoreVowels = _vowels + "*";
+        private const string _oneOrMoreVowels = _vowels + "+";
 
         private static readonly string DictPath = Path.Combine("dict");
 
@@ -88,12 +93,21 @@ namespace MemoryWords
         /// The regular expression matches words that can be formed from the digits,
         /// where each digit corresponds to a set of consonants.
         /// </summary>
+        private static readonly Dictionary<string, Regex> _regexCache = new();
+
         static Regex GetRegexp(byte[] digits)
         {
+            // Use the byte array as string for cache key
+            string key = string.Join(",", digits);
+            if (_regexCache.TryGetValue(key, out var cachedRegex))
+            {
+                return cachedRegex;
+            }
+
             var pattern = new StringBuilder();
 
             pattern.Append("^("); // start regexp and define first group
-            pattern.Append(_vowels).Append("*"); // zero or more vocals
+            pattern.Append(_zeroOrMoreVowels); // zero or more vowels
 
             // the first digits
             int backReferenceCount = 2;
@@ -111,19 +125,19 @@ namespace MemoryWords
                 if (i + 1 < digits.Length)
                 {
                     // check if the next number is the same consonant,
-                    // if that is the case a vocal is mandatory, otherwise vocals are optional
+                    // if that is the case a vowel is mandatory, otherwise vowels are optional
                     if (digits[i] == digits[i + 1])
                     {
-                        pattern.Append(_vowels).Append("+"); // one or more vocals
+                        pattern.Append(_oneOrMoreVowels); // one or more vowels
                     }
                     else
                     {
-                        pattern.Append(_vowels).Append("*"); // zero or more vocals
+                        pattern.Append(_zeroOrMoreVowels); // zero or more vowels
                     }
                 }
                 else
                 {
-                    pattern.Append(_vowels).Append("*"); // zero or more vocals
+                    pattern.Append(_zeroOrMoreVowels); // zero or more vowels
                 }
             }
 
@@ -135,13 +149,16 @@ namespace MemoryWords
                 pattern.Append("(").Append(numPattern).Append(")");
                 pattern.Append("\\").Append(backReferenceCount).Append("?"); // use backreference to group number
 
-                pattern.Append(_vowels).Append("*"); // zero or more vocals
+                pattern.Append(_zeroOrMoreVowels); // zero or more vowels
             }
 
             // end regexp and end group
-            pattern.Append(")\r?$");
+            pattern.Append(")\\r?$");
 
             var regExpression = new Regex(pattern.ToString(), RegexOptions.IgnoreCase | RegexOptions.Multiline);
+
+            // Cache the compiled regex
+            _regexCache[key] = regExpression;
 
             return regExpression;
         }
@@ -152,7 +169,7 @@ namespace MemoryWords
         /// Looks up words in the dictionary that match the given digits.
         /// This method recursively reduces the number of digits if no match is found.
         /// </summary>
-        private static void LookupWords(string dictionary, byte[] searchDigits, ref int noDigitsProcessed, ref List<DigitsWords> wordList, bool outputProgess = false)
+        private static void LookupWords(string[] dictionary, byte[] searchDigits, ref int noDigitsProcessed, ref List<DigitsWords> wordList, bool outputProgess = false)
         {
             if (outputProgess)
             {
@@ -161,29 +178,64 @@ namespace MemoryWords
             }
 
             var regExpression = GetRegexp(searchDigits);
-            var matches = regExpression.Matches(dictionary);
-            if (matches.Count > 0)
+            var matches = new List<string>();
+
+            // Build string from dictionary array for regex matching
+            var dictionaryString = string.Join("\r\n", dictionary);
+            var regexMatches = regExpression.Matches(dictionaryString);
+
+            if (regexMatches.Count > 0)
             {
                 noDigitsProcessed = searchDigits.Length; // store the number of digits already processed
 
                 if (outputProgess)
                 {
                     ClearCurrentConsoleLine();
-                    Console.Write("Found {0}: ", string.Join(",", searchDigits));
+                    Console.WriteLine("Found digits {0}:", string.Join(",", searchDigits));
                 }
 
                 var word = new DigitsWords(searchDigits);
                 wordList.Add(word);
 
-                // Parallel.ForEach did not seem to be faster
-                foreach (Match match in matches)
+                // Calculate the maximum word length for alignment
+                int maxLength = regexMatches.Cast<Match>()
+                    .Max(m => m.Groups[1].Value.Length);
+
+                // Number of words per line (adjust based on console width)
+                const int wordsPerLine = 4;
+                int currentWordCount = 0;
+
+                foreach (Match match in regexMatches)
                 {
-                    //Console.WriteLine("{0} found at position {1}", match.Groups[1], match.Index);
-                    if (outputProgess) Console.Write("{0}  ", match.Groups[1].Value);
+                    if (outputProgess)
+                    {
+                        if (currentWordCount == 0)
+                        {
+                            Console.Write("    "); // Indent for visual hierarchy
+                        }
+
+                        string formattedWord = match.Groups[1].Value.PadRight(maxLength);
+                        Console.Write(formattedWord);
+                        Console.Write("  "); // Space between words
+
+                        currentWordCount++;
+                        if (currentWordCount >= wordsPerLine)
+                        {
+                            Console.WriteLine(); // New line after wordsPerLine words
+                            currentWordCount = 0;
+                        }
+                    }
                     word.WordCandidates.Add(match.Groups[1].Value);
                 }
 
-                if (outputProgess) Console.Write("\n");
+                if (outputProgess)
+                {
+                    if (currentWordCount > 0)
+                    {
+                        Console.WriteLine(); // Ensure we end with a newline
+                    }
+                    Console.WriteLine(); // Add extra line for spacing between different digit groups
+                }
             }
             else
             {
@@ -197,48 +249,49 @@ namespace MemoryWords
         }
 
         /// <summary>
+        /// Extracts the next chunk of bytes from the source array, starting at the specified index.
+        /// If there are fewer bytes remaining than maxChunkSize, returns all remaining bytes.
+        /// </summary>
+        /// <param name="source">The source byte array to extract from</param>
+        /// <param name="startIndex">The starting index in the source array</param>
+        /// <param name="maxChunkSize">The maximum size of the chunk to extract</param>
+        /// <returns>A new byte array containing the extracted chunk</returns>
+        private static byte[] GetNextChunk(byte[] source, int startIndex, int maxChunkSize)
+        {
+            int remainingLength = source.Length - startIndex;
+            int chunkSize = Math.Min(maxChunkSize, remainingLength);
+            var chunk = new byte[chunkSize];
+            Array.Copy(source, startIndex, chunk, 0, chunkSize);
+            return chunk;
+        }
+
+        /// <summary>
         /// Finds words in the dictionary that can be formed from the given digits.
         /// The digits are divided into chunks, and the LookupWords method is used to find matching words.
         /// </summary>
-        public static List<DigitsWords> FindWords(string dictionary, byte[] digits, bool outputProgess = false)
+        public static List<DigitsWords> FindWords(string[] dictionary, byte[] digits, bool outputProgress = false)
         {
-            if (outputProgess) Console.WriteLine("Converting into words: {0}", string.Join(",", digits));
+            // if (outputProgress)
+            //     Console.WriteLine("Converting into words: {0}", string.Join(",", digits));
 
-            // divide into sections of x digits
-            const int chunkSize = 8;
-
-            // variables
+            const int maxChunkSize = 16;
             var wordList = new List<DigitsWords>();
-            byte[] chunk;
-            int processedNew = 0;
-            int processedAlready = 0;
-            int curIndex;
-            int remainingDigits;
+            int digitsProcessed = 0;
+            int lastProcessedCount = 0;
 
-            while (true)
+            while (digitsProcessed < digits.Length)
             {
-                curIndex = processedAlready + processedNew; // what index are we at
-                processedAlready += processedNew; // store how many digits we have processed so far
-                remainingDigits = digits.Length - curIndex;
-                if (remainingDigits <= 0) break; // we have exceeded the end
+                var currentChunk = GetNextChunk(digits, digitsProcessed, maxChunkSize);
+                LookupWords(dictionary, currentChunk, ref lastProcessedCount, ref wordList, outputProgress);
 
-                if (chunkSize + curIndex <= digits.Length)
-                {
-                    // use chunk size
-                    chunk = new byte[chunkSize];
-                    Array.Copy(digits, curIndex, chunk, 0, chunkSize);
-                }
-                else
-                {
-                    // use the remaining number of digits
-                    chunk = new byte[remainingDigits];
-                    Array.Copy(digits, curIndex, chunk, 0, remainingDigits);
-                }
-                LookupWords(dictionary, chunk, ref processedNew, ref wordList, outputProgess);
-                if (processedNew == 0) break; // we found the last word
+                if (lastProcessedCount == 0)
+                    break; // No more words found
+
+                digitsProcessed += lastProcessedCount;
             }
 
-            if (outputProgess) Console.WriteLine();
+            if (outputProgress)
+                Console.WriteLine();
 
             return wordList;
         }
@@ -252,10 +305,8 @@ namespace MemoryWords
         {
             var digits = new List<byte>();
 
-            foreach (string word in sentence.Split(new string[] { "\r\n", "\n", " " }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string word in sentence.Split(["\r\n", "\n", " "], StringSplitOptions.RemoveEmptyEntries))
             {
-                //Console.WriteLine(word);
-
                 char lastCharacter = '.';
                 foreach (char c in word)
                 {
@@ -313,7 +364,6 @@ namespace MemoryWords
                                 value = 9;
                                 break;
                             default:
-                                //Console.WriteLine("Error, found {0} letter!", charLetter);
                                 break;
                         }
                         if (value != 255) digits.Add(value);
@@ -397,15 +447,45 @@ namespace MemoryWords
                 Console.WriteLine("Usage: MemoryWords [options] [digits]");
                 Console.WriteLine("Options:");
                 Console.WriteLine("  -h, --help                  Show help message and exit");
+                Console.WriteLine("  -r, --rules                 Show the mnemonic major system rules");
                 Console.WriteLine("  -s, --string <text>         Parse the given text into digits using ParseDigits");
-                Console.WriteLine("  -d, --dictionary <name>     Use the specified dictionary (wiktionary, ord10000, ord10k, norwegian, norwegian_large, nsf2012, nsf2023)");
-                Console.WriteLine("  -a, --all                   Use all dictionaries (default)");
+                Console.WriteLine("  -d, --dictionary <name>     Use the specified dictionary (wiktionary, ord10000, ord10k, norwegian, norwegian_large, nsf2012, nsf2023) [default: nsf2023]");
+                Console.WriteLine("  -a, --all                   Use all dictionaries");
                 Console.WriteLine("  -c, --csv                   Enable CSV output");
                 Console.WriteLine("Digits: A string of digits to convert into words (default: pi digits)");
                 return;
             }
 
-            // Check for -s/--string flag first
+            // Check for -r/--rules flag first
+            if (args.Contains("-r") || args.Contains("--rules"))
+            {
+                Console.WriteLine("Mnemonic Major System Rules:\n");
+                Console.WriteLine("0 = S, Z        (think \"ZERO\" starts with 'Z')");
+                Console.WriteLine("1 = T, D        (think 'T' has one downstroke)");
+                Console.WriteLine("2 = N           (think 'N' has two downstrokes)");
+                Console.WriteLine("3 = M           (think 'M' has three downstrokes)");
+                Console.WriteLine("4 = R           (last letter of 'FOUR')");
+                Console.WriteLine("5 = L           (roman numeral 'L' = 50)");
+                Console.WriteLine("6 = J, G        (reversed 'J' looks like '6')");
+                Console.WriteLine("7 = K           (think 'K' contains two '7's)");
+                Console.WriteLine("8 = F, V        ('F' looks like '8')");
+                Console.WriteLine("9 = P, B        ('P' is a mirror of '9')\n");
+                Console.WriteLine("Or in Norwegian:");
+                Console.WriteLine("\n0 = S, Z        (tenk på 'SIRKEL' eller '0' på engelsk 'ZERO')");
+                Console.WriteLine("1 = T, D        (tenk på at 'T' har én nedstrek)");
+                Console.WriteLine("2 = N           (tenk på at 'N' har to nedstreker)");
+                Console.WriteLine("3 = M           (tenk på at 'M' har tre nedstreker)");
+                Console.WriteLine("4 = R           (tenk på at 'FIRE' inneholder 'R', eller 'R som i rein, fire bein')");
+                Console.WriteLine("5 = L           (tenk på romertallet 'L' som er 50)");
+                Console.WriteLine("6 = J, G        (tenk på at speilvendt 'J' ligner på '6')");
+                Console.WriteLine("7 = K           (tenk på at 'K' inneholder to '7'-tall)");
+                Console.WriteLine("8 = F, V        (tenk på at 'F' ligner på '8')");
+                Console.WriteLine("9 = P, B        (tenk på at 'P' er speilvendt '9')\n");
+                Console.WriteLine("Note: Vowels (A, E, I, O, U, Y, Æ, Ø, Å) and some consonants (H, W, C) are ignored.");
+                return;
+            }
+
+            // Check for -s/--string flag next
             for (int i = 0; i < args.Length; i++)
             {
                 if ((args[i] == "-s" || args[i] == "--string") && i + 1 < args.Length)
@@ -435,7 +515,8 @@ namespace MemoryWords
 
             byte[]? digits = null;
             string? dictionaryName = null;
-            bool useAllDictionaries = true;
+            bool useAllDictionaries = false;
+            dictionaryName = "nsf2023"; // Set default dictionary
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -483,13 +564,16 @@ namespace MemoryWords
                 // string defaultDigits = "4622"; // regionen
                 // string defaultDigits = "74818471"; // kraftverket
                 // string defaultDigits = "034101521"; // smertestillende
-                // string defaultDigits = "03918284226"; // småbåthavnforening
-                string defaultDigits = "314159265358979";
+                // string defaultDigits = "03918284226"; // småbåtvenneforening
+                string defaultDigits = "314159265358979"; // PI short
                 // string defaultDigits = "314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651";
                 // string defaultDigits = "05721184084105791485091641940564691959501972917284624120958121584129557914181849214842841226184084612846419491230290748494107908502039150121418543492858012042158641202054157914203849850032319410790149284059511014718531484972";
                 Console.WriteLine("Could not find any digits to use. Using default digits {0}\n", defaultDigits);
                 digits = Digits(defaultDigits);
             }
+
+            // Start timer for execution time measurement
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             // Execute dictionary operations based on command line arguments
             if (!useAllDictionaries && dictionaryName != null)
@@ -518,6 +602,10 @@ namespace MemoryWords
                     ExecuteDictionary(dictionary, digits, outputCSVDir, outputCSV);
                 }
             }
+
+            // Stop timer and output execution time
+            stopwatch.Stop();
+            Console.WriteLine("\nTotal execution time: {0}ms", stopwatch.ElapsedMilliseconds);
         }
 
         /// <summary>
@@ -557,24 +645,26 @@ namespace MemoryWords
                 // read a norwegian dictionary that contain a list of words
                 case "norwegian.txt":
                 case "norwegian_large.txt":
-                    string dictionary = File.ReadAllText(Path.Combine(DictPath, dictionaryName), _isoLatin1Encoding);
-                    wordList = FindWords(dictionary, digits, true);
+                    string norwegianText = File.ReadAllText(Path.Combine(DictPath, dictionaryName), _isoLatin1Encoding);
+                    var norwegianWords = norwegianText.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
+                    wordList = FindWords(norwegianWords, digits, true);
                     if (outputCSV) WriteCSV(outputCSVDir, outFileName, digits, wordList);
                     VerifyResults(digits, wordList);
                     break;
 
                 // read the nsf dictionary in 2012 format
                 case "nsf2012.txt":
-                    var nsf2012Words = new NSF2012(Path.Combine(Path.Combine(DictPath, "nsf2012"), dictionaryName));
-                    wordList = FindWords(nsf2012Words.Nouns, digits, true);
+                    var nsf2012 = new NSF2012(Path.Combine(Path.Combine(DictPath, "nsf2012"), dictionaryName));
+                    wordList = FindWords(nsf2012.Nouns, digits, true);
                     if (outputCSV) WriteCSV(outputCSVDir, outFileName, digits, wordList);
                     VerifyResults(digits, wordList);
                     break;
 
                 // read the nsf dictionary in 2023 format (as list of words)
                 case "nsf2023.txt":
-                    string dictionaryNSF = File.ReadAllText(Path.Combine(Path.Combine(DictPath, "nsf2023"), dictionaryName), _isoLatin1Encoding);
-                    wordList = FindWords(dictionaryNSF, digits, true);
+                    string nsf2023Text = File.ReadAllText(Path.Combine(Path.Combine(DictPath, "nsf2023"), dictionaryName), _utf8Encoding);
+                    var nsf2023Words = nsf2023Text.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
+                    wordList = FindWords(nsf2023Words, digits, true);
                     if (outputCSV) WriteCSV(outputCSVDir, outFileName, digits, wordList);
                     VerifyResults(digits, wordList);
                     break;

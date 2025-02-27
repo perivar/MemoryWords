@@ -3,17 +3,10 @@ namespace MemoryWords
 {
 	public class FrequencyLists
 	{
-		static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
-		List<WordElement> wordElements = new List<WordElement>();
-		string words = "";
-
-		public string Words
-		{
-			get
-			{
-				return words;
-			}
-		}
+		private static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
+		private readonly List<WordElement> _wordElements = new();
+		public List<WordElement> WordElements => _wordElements;
+		public string[] Words => _wordElements.Where(w => w.Word != null).Select(w => w.Word!).ToArray();
 
 		/// <summary>
 		/// Reads a frequency list from a file in the ord10k.csv format.
@@ -23,8 +16,6 @@ namespace MemoryWords
 		/// </summary>
 		public void ReadOrd10KFormat(string filePath, bool ignoreSingleLetterWords = false)
 		{
-
-			var sb = new StringBuilder();
 			int lineCounter = 0;
 
 			// read in the dictionary file in the ord10k.csv format
@@ -40,26 +31,18 @@ namespace MemoryWords
 					continue;
 
 				// parse
-				var elements = line.Split(new String[] {
-											  ","
-										  }, StringSplitOptions.RemoveEmptyEntries);
+				var elements = line.Split([","], StringSplitOptions.RemoveEmptyEntries);
 
 				// ignore words with only one letter or digit
 				if (ignoreSingleLetterWords && elements[4].Length < 2) continue;
 
 				var word = new WordElement();
-				wordElements.Add(word);
+				_wordElements.Add(word);
 
 				word.Place = int.Parse(elements[0]);
 				word.Frequency = int.Parse(elements[1]);
 				word.Word = elements[4];
-
-				// also add to the string
-				sb.Append(word.Word);
-				sb.Append("\r\n");
 			}
-
-			words = sb.ToString();
 		}
 
 		/// <summary>
@@ -69,8 +52,6 @@ namespace MemoryWords
 		/// </summary>
 		public void ReadWiktionary5KFormat(string filePath, bool ignoreSingleLetterWords = false)
 		{
-
-			var sb = new StringBuilder();
 			int lineCounter = 0;
 
 			// read in the dictionary file in the wiktionary_frequency_list.txt format
@@ -83,26 +64,18 @@ namespace MemoryWords
 					continue;
 
 				// parse
-				var elements = line.Split(new String[] {
-											  " "
-										  }, StringSplitOptions.RemoveEmptyEntries);
+				var elements = line.Split([" "], StringSplitOptions.RemoveEmptyEntries);
 
 				// ignore words with only one letter or digit
 				if (ignoreSingleLetterWords && elements[0].Length < 2) continue;
 
 				var word = new WordElement();
-				wordElements.Add(word);
+				_wordElements.Add(word);
 
 				word.Place = lineCounter;
 				word.Frequency = int.Parse(elements[1]);
 				word.Word = elements[0];
-
-				// also add to the string
-				sb.Append(word.Word);
-				sb.Append("\r\n");
 			}
-
-			words = sb.ToString();
 		}
 
 		/// <summary>
@@ -112,8 +85,6 @@ namespace MemoryWords
 		/// </summary>
 		public void ReadOrd10000Format(string filePath, bool ignoreSingleLetterWords = false)
 		{
-
-			var sb = new StringBuilder();
 			int lineCounter = 0;
 
 			// read in the dictionary file in the ord10000.txt format
@@ -126,53 +97,28 @@ namespace MemoryWords
 					continue;
 
 				// parse
-				var elements = line.Split(new String[] {
-											  " "
-										  }, StringSplitOptions.RemoveEmptyEntries);
+				var elements = line.Split([" "], StringSplitOptions.RemoveEmptyEntries);
 
 				// ignore words with only one letter or digit
 				if (ignoreSingleLetterWords && elements[1].Length < 2) continue;
 
 				var word = new WordElement();
-				wordElements.Add(word);
+				_wordElements.Add(word);
 
 				word.Place = lineCounter;
 				word.Frequency = int.Parse(elements[0]);
 				word.Word = elements[1];
-
-				// also add to the string
-				sb.Append(word.Word);
-				sb.Append("\r\n");
 			}
-
-			words = sb.ToString();
 		}
 	}
 
 	public class WordElement
 	{
-		public int Frequency
-		{
-			get;
-			set;
-		}
+		public int Frequency { get; set; }
+		public string? Word { get; set; }
+		public int Place { get; set; }
 
-		public string? Word
-		{
-			get;
-			set;
-		}
-
-		public int Place
-		{
-			get;
-			set;
-		}
-
-		public override string ToString()
-		{
-			return string.Format("Place {0}, Freq. {1} = '{2}'", Place, Frequency, Word);
-		}
+		public override string ToString() => $"Place {Place}, Freq. {Frequency} = '{Word}'";
 
 	}
 }

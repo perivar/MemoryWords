@@ -1,109 +1,55 @@
-﻿namespace MemoryWords
+﻿﻿namespace MemoryWords
 {
 	class NSF2012
 	{
 		// Substantiv - an abstract or concrete entity; a person, place, thing, idea or quality
-		string nouns;
+		private string[] nouns;
 
 		// Adjektiv - a modifier of a noun or pronoun (big, brave)
-		string adjectives;
+		private string[] adjectives;
 
 		// Pronomen - a substitute for a noun or noun phrase (them, he)
-		string pronouns;
+		private string[] pronouns;
 
-		string verbs;
 		// Verb - an action (walk), occurrence (happen), or state of being (be)
+		private string[] verbs;
 
-		string adverbs;
 		// Adverb - a modifier of an adjective, verb, or other adverb (very, quite)
+		private string[] adverbs;
 
 		// Preposisjon - aids in syntactic contex (in, of)
-		string prepositions;
+		private string[] prepositions;
 
 		// Konjunksjon - links words, phrases, or clauses (and, but)
-		string conjunctions;
+		private string[] conjunctions;
 
 		// Interjeksjon - greeting or exclamation (Hurrah, Alas)
-		string interjections;
+		private string[] interjections;
 
 		// Subjunksjon – innleder bisetninger
-		string subjunctions;
+		private string[] subjunctions;
 
 		// Artikkel - definiteness (the) or indefiniteness (a, an)
-		string articles;
+		private string[] articles;
 
 		// Determinativ – bestemmer substantivet nærmere
-		string determinatives;
+		private string[] determinatives;
 
 		#region Getters
-		public string Nouns {
-			get {
-				return nouns;
-			}
-		}
-
-		public string Adjectives {
-			get {
-				return adjectives;
-			}
-		}
-
-		public string Pronouns {
-			get {
-				return pronouns;
-			}
-		}
-
-		public string Verbs {
-			get {
-				return verbs;
-			}
-		}
-
-		public string Adverbs {
-			get {
-				return adverbs;
-			}
-		}
-
-		public string Prepositions {
-			get {
-				return prepositions;
-			}
-		}
-
-		public string Conjunctions {
-			get {
-				return conjunctions;
-			}
-		}
-
-		public string Interjections {
-			get {
-				return interjections;
-			}
-		}
-
-		public string Subjunctions {
-			get {
-				return subjunctions;
-			}
-		}
-
-		public string Articles {
-			get {
-				return articles;
-			}
-		}
-
-		public string Determinatives {
-			get {
-				return determinatives;
-			}
-		}
+		public string[] Nouns => nouns;
+		public string[] Adjectives => adjectives;
+		public string[] Pronouns => pronouns;
+		public string[] Verbs => verbs;
+		public string[] Adverbs => adverbs;
+		public string[] Prepositions => prepositions;
+		public string[] Conjunctions => conjunctions;
+		public string[] Interjections => interjections;
+		public string[] Subjunctions => subjunctions;
+		public string[] Articles => articles;
+		public string[] Determinatives => determinatives;
 
 		#endregion
-		
+
 		public NSF2012(string filePath)
 		{
 			// initialise temporary HashSets
@@ -118,17 +64,17 @@
 			var mysubjunctions = new HashSet<string>();
 			var myarticles = new HashSet<string>();
 			var mydeterminatives = new HashSet<string>();
-			
+
 			// read in the dictionary file
-			foreach (var line in File.ReadLines(filePath)) {
+			foreach (var line in File.ReadLines(filePath))
+			{
 				if (string.IsNullOrEmpty(line))
 					continue;
-				var elements = line.Split(new String[] {
-				                          	" "
-				                          }, StringSplitOptions.RemoveEmptyEntries);
+				var elements = line.Split([" "], StringSplitOptions.RemoveEmptyEntries);
 				string word = elements.First().ToLower();
 				string wordClass = elements.Last();
-				switch (wordClass) {
+				switch (wordClass)
+				{
 					case "subst":
 						mynouns.Add(word);
 						break;
@@ -171,19 +117,19 @@
 						break;
 				}
 			}
-			
-			// load into strings
-			nouns = string.Join("\r\n", mynouns.ToArray());
-			adjectives = string.Join("\r\n", myadjectives.ToArray());
-			pronouns = string.Join("\r\n", mypronouns.ToArray());
-			verbs = string.Join("\r\n", myverbs.ToArray());
-			adverbs = string.Join("\r\n", myadverbs.ToArray());
-			prepositions = string.Join("\r\n", myprepositions.ToArray());
-			conjunctions = string.Join("\r\n", myconjunctions.ToArray());
-			interjections = string.Join("\r\n", myinterjections.ToArray());
-			subjunctions = string.Join("\r\n", mysubjunctions.ToArray());
-			articles = string.Join("\r\n", myarticles.ToArray());
-			determinatives = string.Join("\r\n", mydeterminatives.ToArray());
+
+			// store arrays directly
+			nouns = mynouns.ToArray();
+			adjectives = myadjectives.ToArray();
+			pronouns = mypronouns.ToArray();
+			verbs = myverbs.ToArray();
+			adverbs = myadverbs.ToArray();
+			prepositions = myprepositions.ToArray();
+			conjunctions = myconjunctions.ToArray();
+			interjections = myinterjections.ToArray();
+			subjunctions = mysubjunctions.ToArray();
+			articles = myarticles.ToArray();
+			determinatives = mydeterminatives.ToArray();
 		}
 	}
 }
