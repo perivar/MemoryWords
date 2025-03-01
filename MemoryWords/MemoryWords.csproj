@@ -8,27 +8,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="dict\norwegian.txt">
+    <Content Include="..\dict\norwegian.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="dict\norwegian_large.txt">
+    <Content Include="..\dict\norwegian_large.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="dict\nsf2012\nsf2012.txt">
+    <Content Include="..\dict\nsf2012\nsf2012.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="dict\nsf2023\nsf2023.txt">
+    <Content Include="..\dict\nsf2023\nsf2023.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="dict\ord10k.csv">
+    <Content Include="..\dict\ord10k.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="dict\wiktionary_frequency_list.txt">
+    <Content Include="..\dict\wiktionary_frequency_list.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="dict\ord10000.txt">
+    <Content Include="..\dict\ord10000.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  
+
 </Project>

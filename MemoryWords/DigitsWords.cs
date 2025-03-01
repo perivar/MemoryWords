@@ -11,8 +11,10 @@
 			this.digits = digits;
 		}
 
-		public byte[] Digits {
-			get {
+		public byte[] Digits
+		{
+			get
+			{
 				return digits;
 			}
 		}
@@ -22,8 +24,10 @@
 			return string.Join(",", digits);
 		}
 
-		public List<string> WordCandidates {
-			get {
+		public List<string> WordCandidates
+		{
+			get
+			{
 				return wordCandidates;
 			}
 		}

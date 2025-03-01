@@ -3,12 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace MemoryWords
 {
-    class Program
+    public class Program
     {
         private static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
         private static readonly Encoding _utf8Encoding = Encoding.UTF8;
 
-        private const string _vowels = "[aeiouyæøå]"; // vowels and non-used characters (hwc)
+        private const string _vowels = "[aeiouyæøåhwc]"; // vowels and non-used characters (hwc)
 
         private const string _zeroOrMoreVowels = _vowels + "*";
         private const string _oneOrMoreVowels = _vowels + "+";
@@ -298,93 +298,118 @@ namespace MemoryWords
         #endregion
 
         #region from words into digits
+
+        private static readonly Dictionary<string, byte> PhonemeToDigit = new Dictionary<string, byte>
+        {
+            { "s", 0 }, { "z", 0 },
+            { "t", 1 }, { "d", 1 },
+            { "n", 2 },
+            { "m", 3 },
+            { "r", 4 },
+            { "l", 5 },
+            { "sj", 6 }, { "skj", 6 }, { "tj", 6 }, { "kj", 6 },
+            { "k", 7 }, { "g", 7 },
+            { "f", 8 }, { "v", 8 },
+            { "p", 9 }, { "b", 9 }
+        };
+
         /// <summary>
         /// Parses a sentence into a byte array of digits.
         /// </summary>
         public static byte[] ParseDigits(string sentence)
         {
-            var digits = new List<byte>();
+            if (string.IsNullOrEmpty(sentence))
+                return Array.Empty<byte>();
 
-            foreach (string word in sentence.Split(["\r\n", "\n", " "], StringSplitOptions.RemoveEmptyEntries))
+            // Konverter til små bokstaver for enklere matching
+            sentence = sentence.ToLowerInvariant();
+            List<byte> digits = new List<byte>();
+
+            // Regex to match phonemes, vowels, and spaces in order (sj, skj, tj, kj first, then single letters, vowels, and spaces)
+            string pattern = @"(sj|skj|tj|kj|[sztdnmrlkgfvpb])|(" + _oneOrMoreVowels + @"|(\s+))";
+            MatchCollection matches = Regex.Matches(sentence, pattern);
+
+            byte? lastDigit = null;
+            bool hasVowelSinceLastDigit = false;
+
+            foreach (Match match in matches)
             {
-                char lastCharacter = '.';
-                foreach (char c in word)
+                // Check if this match is a vowel
+                if (match.Groups[2].Success)
                 {
-                    char charLetter = char.ToLower(c);
-                    if (_vowels.Contains(charLetter))
-                    {
-                        lastCharacter = charLetter;
-                    }
-                    else
-                    {
-                        if (lastCharacter == charLetter) continue;
+                    hasVowelSinceLastDigit = true;
+                    continue;
+                }
 
-                        // consonant
-                        byte value = 255;
-                        switch (charLetter)
-                        {
-                            case 'c':
-                            case 'w':
-                                // ignore
-                                break;
-                            case 'j':
-                                if (lastCharacter == 's' || lastCharacter == 't' || lastCharacter == 'k')
-                                    value = 6; // sj/tj/kj sounds
-                                break;
-                            case 's':
-                                if (char.ToLower(c) == 'j')
-                                    value = 6; // sj sound
-                                else
-                                    value = 0;
-                                break;
-                            case 't':
-                                if (char.ToLower(c) == 'j')
-                                    value = 6; // tj sound
-                                else
-                                    value = 1;
-                                break;
-                            case 'd':
-                                value = 1;
-                                break;
-                            case 'n':
-                                value = 2;
-                                break;
-                            case 'm':
-                                value = 3;
-                                break;
-                            case 'r':
-                                value = 4;
-                                break;
-                            case 'l':
-                                value = 5;
-                                break;
-                            case 'k':
-                                if (char.ToLower(c) == 'j')
-                                    value = 6; // kj sound
-                                else
-                                    value = 7;
-                                break;
-                            case 'g':
-                                value = 7;
-                                break;
-                            case 'f':
-                            case 'v':
-                                value = 8;
-                                break;
-                            case 'p':
-                            case 'b':
-                                value = 9;
-                                break;
-                            default:
-                                break;
-                        }
-                        if (value != 255) digits.Add(value);
-                        lastCharacter = charLetter;
+                string phoneme = match.Groups[1].Value;
+                if (PhonemeToDigit.ContainsKey(phoneme))
+                {
+                    byte currentDigit = PhonemeToDigit[phoneme];
+                    // Add the digit if it's different from the last one OR if we've seen vowels since the last digit
+                    if (!lastDigit.HasValue || lastDigit.Value != currentDigit || hasVowelSinceLastDigit)
+                    {
+                        digits.Add(currentDigit);
+                        lastDigit = currentDigit;
+                        hasVowelSinceLastDigit = false;
                     }
                 }
             }
 
             return digits.ToArray();
+        }
+
+        // Converts the sentence to a mnemonic string for explanation
+        public static string ToMnemonic(string sentence)
+        {
+            if (string.IsNullOrEmpty(sentence))
+                return string.Empty;
+
+            sentence = sentence.ToLowerInvariant();
+            List<string> mnemonicParts = new List<string>();
+            string pattern = @"(sj|skj|tj|kj|[sztdnmrlkgfvpb])|(" + _oneOrMoreVowels + @"|(\s+))";
+            MatchCollection matches = Regex.Matches(sentence, pattern);
+
+            byte? lastDigit = null;
+            string? lastPhoneme = null;
+            bool hasVowelSinceLastDigit = false;
+
+            foreach (Match match in matches)
+            {
+                // Check if this is a vowel
+                if (match.Groups[2].Success)
+                {
+                    hasVowelSinceLastDigit = true;
+                    mnemonicParts.Add($"[{match.Value}]"); // Show vowels in brackets
+                    continue;
+                }
+                // Check if this is a space
+                if (match.Groups[3].Success)
+                {
+                    mnemonicParts.Add("[space]");
+                    continue;
+                }
+
+                string phoneme = match.Groups[1].Value;
+                if (PhonemeToDigit.ContainsKey(phoneme))
+                {
+                    byte currentDigit = PhonemeToDigit[phoneme];
+                    // Add the phoneme if it's different from the last one OR if we've seen vowels since the last digit
+                    if (!lastDigit.HasValue || lastDigit.Value != currentDigit || hasVowelSinceLastDigit)
+                    {
+                        mnemonicParts.Add($"{phoneme}({currentDigit})");
+                        lastDigit = currentDigit;
+                        lastPhoneme = phoneme;
+                        hasVowelSinceLastDigit = false;
+                    }
+                    else
+                    {
+                        // Replace the last part to show combined consonants
+                        mnemonicParts[mnemonicParts.Count - 1] = $"{lastPhoneme}{phoneme}({currentDigit})";
+                    }
+                }
+            }
+
+            return string.Join(" ", mnemonicParts);
         }
         #endregion
 
@@ -396,7 +421,7 @@ namespace MemoryWords
             var sentenceList = from list in wordList
                                select list.WordCandidates.First()
                              ;
-            return string.Join("\r\n", sentenceList);
+            return string.Join(" ", sentenceList);
         }
 
         /// <summary>
@@ -405,11 +430,49 @@ namespace MemoryWords
         /// </summary>
         /// <param name="expectedDigits">The original digits that should be represented</param>
         /// <param name="wordList">The list of words to verify</param>
-        private static void VerifyResults(byte[] expectedDigits, List<DigitsWords> wordList)
+        public static bool VerifyResults(byte[] expectedDigits, List<DigitsWords> wordList)
         {
             string digitsSentence = WordListAsString(wordList);
             byte[] foundDigits = ParseDigits(digitsSentence);
-            if (!expectedDigits.SequenceEqual(foundDigits)) Console.WriteLine("Failed - Not identical");
+            bool isMatch = expectedDigits.SequenceEqual(foundDigits);
+
+            if (!isMatch)
+            {
+                Console.WriteLine("Failed - Sequences not identical");
+
+                // Numbers are always single digits, use fixed width of 1
+                // Create position indicators
+                // Pad each number to occupy exactly 3 spaces
+                string positions = string.Join(" ", Enumerable.Range(0, Math.Max(expectedDigits.Length, foundDigits.Length))
+                    .Select(i => i.ToString().PadLeft(3)));
+                Console.WriteLine($"Position: {positions}");
+
+                // Format the sequences with 3-space padding
+                string expected = string.Join(" ", expectedDigits.Select(d => d.ToString().PadLeft(3)));
+                string found = string.Join(" ", foundDigits.Select(d => d.ToString().PadLeft(3)));
+                Console.WriteLine($"Expected: {expected}");
+                Console.WriteLine($"Found   : {found}");
+
+                // Generate difference markers
+                var diffMarkers = new List<string>();
+                int minLength = Math.Min(expectedDigits.Length, foundDigits.Length);
+                for (int i = 0; i < Math.Max(expectedDigits.Length, foundDigits.Length); i++)
+                {
+                    if (i >= minLength)
+                        diffMarkers.Add("^"); // Different length
+                    else if (expectedDigits[i] != foundDigits[i])
+                        diffMarkers.Add("^"); // Different values
+                    else
+                        diffMarkers.Add(" "); // Same
+                }
+                // Join markers with same 3-space width
+                Console.WriteLine($"Diff    : {string.Join(" ", diffMarkers.Select(m => m.PadLeft(3)))}");
+
+                Console.WriteLine($"Word    : {digitsSentence}");
+                Console.WriteLine($"Mnemonic: {ToMnemonic(digitsSentence)}");
+            }
+
+            return isMatch;
         }
 
         /// <summary>
@@ -510,8 +573,10 @@ namespace MemoryWords
                 {
                     string input = args[i + 1];
                     byte[] parsedDigits = ParseDigits(input);
+                    string mnemonic = ToMnemonic(input);
                     Console.WriteLine("Input: {0}", input);
-                    Console.WriteLine("Parsed digits: {0}", string.Join(",", parsedDigits));
+                    Console.WriteLine("Digits: {0}", string.Join(", ", parsedDigits));
+                    Console.WriteLine("Mnemonic: {0}", mnemonic);
                     return;
                 }
             }
