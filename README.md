@@ -8,35 +8,40 @@ The Mnemonic major system is a memory technique that converts numbers into conso
 
 ### How it Works
 
-The system maps numbers to consonant sounds as follows:
+The original Mnemonic Major System maps numbers to consonant sounds as follows:
 
-```code
-0 = S, Z        (think "ZERO" starts with 'Z')
-1 = T, D        (think 'T' has one downstroke)
-2 = N           (think 'N' has two downstrokes)
-3 = M           (think 'M' has three downstrokes)
-4 = R           (last letter of 'FOUR')
-5 = L           (roman numeral 'L' = 50)
-6 = J, G        (reversed 'J' looks like '6')
-7 = K           (think 'K' contains two '7's)
-8 = F, V        ('F' looks like '8')
-9 = P, B        ('P' is a mirror of '9')
-```
+| Digit | Speech Sounds (IPA) | Associated Letters & Examples | Notes |
+|-------|-------------------|---------------------------|-------|
+| 0 | /s/, /z/ | S as in 'See', Z as in 'Zero' | Zero begins with Z. Other letters sound similar when spoken. |
+| 1 | /t/, /d/, /θ/, /ð/ | T as in 'Take', D as in 'Day', TH as in 'THing', TH as in 'THis' | t and d each have one downstroke, and sound similar when voiced. |
+| 2 | /n/ | N as in 'Nay' | n has two downstrokes when written. |
+| 3 | /m/ | M as in 'May' | m has three downstrokes when written. |
+| 4 | /r/ | R as in 'Ray' | Last letter of 'fouR' |
+| 5 | /l/ | L as in 'Lay' | Roman numeral 'L' = 50 |
+| 6 | /tʃ/, /dʒ/, /ʃ/, /ʒ/ | CH as in 'CHip', J as in 'Jump', SH as in 'SHip', S as in 'viSion' | j has a curve near the bottom, like 6 does |
+| 7 | /k/, /g/ | K as in 'Key', G as in 'Gee' | 'K' contains two '7's |
+| 8 | /f/, /v/ | F as in 'Few', V as in 'View' | I associate V with "V8". F sounds like V when spoken.'F' looks like '8' |
+| 9 | /p/, /b/ | P as in 'Pay', B as in 'Bay' | 9 rotated 180 degrees looks like b. 9 flipped horizontally looks like P. P and B sound similar when spoken. |
 
-Or in Norwegian:
+Here's a handy trick for remembering the sounds & digits in the right order, using uppercase letters (Created by Adam Beggs from Hertford, UK):
+> houSToN May ReaLly CHecK iF Bowie is major tom.
 
-```code
-0 = S, Z        (tenk på 'SIRKEL' eller '0' på engelsk 'ZERO')
-1 = T, D        (tenk på at 'T' har én nedstrek)
-2 = N           (tenk på at 'N' har to nedstreker)
-3 = M           (tenk på at 'M' har tre nedstreker)
-4 = R           (tenk på at 'FIRE' inneholder 'R', eller 'R som i rein, fire bein')
-5 = L           (tenk på romertallet 'L' som er 50)
-6 = J, G        (tenk på at speilvendt 'J' ligner på '6')
-7 = K           (tenk på at 'K' inneholder to '7'-tall)
-8 = F, V        (tenk på at 'F' ligner på '8')
-9 = P, B        (tenk på at 'P' er speilvendt '9')
-```
+For this program, the system has been modified to better suit Norwegian phonetics. In particular, digit 6 has been adapted to only match the /ʃ/ and /tʃ/ sounds, which in Norwegian are represented by combinations like 'sj', 'skj', 'kj', and 'tj'.
+
+The Norwegian adaptation:
+
+| Digit | Speech Sounds (IPA) | Associated Letters & Examples | Notes |
+|-------|-------------------|---------------------------|-------|
+| 0 | /s/, /z/ | S som i 'Sirkel', Z som i 'Zero' | 'SIRKEL' eller '0' på engelsk 'ZERO' |
+| 1 | /t/, /d/ | T som i 'Tal', D som i 'Dal' | t og d har én nedstrek |
+| 2 | /n/ | N som i 'Nei' | n har to nedstreker |
+| 3 | /m/ | M som i 'Meg' | m har tre nedstreker |
+| 4 | /r/ | R som i 'Rein' | tenk på 'fiRe', eller 'R som i rein, fire bein' |
+| 5 | /l/ | L som i 'Liv' | Romertallet 'L' er 50 |
+| 6 | /ʃ/, /tʃ/ | SJ som i 'Sjø', SKJ som i 'Skje', KJ som i 'Kjede', TJ som i 'Tjue' | J har en kurve nederst slik som 6 har |
+| 7 | /k/, /g/ | K som i 'Kul', G som i 'Gul' | 'K' inneholder to '7'-tall |
+| 8 | /f/, /v/ | F som i 'Fisk', V som i 'Visk' | Jeg assosierer V med "V8". F lyder som V når den uttales. 'F' ligner på '8' |
+| 9 | /p/, /b/ | P som i 'Pil', B som i 'Bil' | 9 rotert 180 grader ser ut som b. 9 speilvendt ser ut som P. P og B lyder likt når de uttales. |
 
 Vowels (A, E, I, O, U, Y, Æ, Ø, Å) and some consonants (H, W, C) are ignored, which allows for flexibility in creating words while maintaining the number sequence.
 

@@ -76,9 +76,9 @@ namespace MemoryWords
                 case 5:
                     return "l";
                 case 6:
-                    return "[gj]";
+                    return "((s(k)?j)|(kj)|(tj))";
                 case 7:
-                    return "k";
+                    return "[kg]";
                 case 8:
                     return "[fv]";
                 case 9:
@@ -95,7 +95,7 @@ namespace MemoryWords
         /// </summary>
         private static readonly Dictionary<string, Regex> _regexCache = new();
 
-        static Regex GetRegexp(byte[] digits)
+        public static Regex GetRegexp(byte[] digits)
         {
             // Use the byte array as string for cache key
             string key = string.Join(",", digits);
@@ -301,7 +301,7 @@ namespace MemoryWords
         /// <summary>
         /// Parses a sentence into a byte array of digits.
         /// </summary>
-        private static byte[] ParseDigits(string sentence)
+        public static byte[] ParseDigits(string sentence)
         {
             var digits = new List<byte>();
 
@@ -323,17 +323,27 @@ namespace MemoryWords
                         byte value = 255;
                         switch (charLetter)
                         {
-                            case 'h':
                             case 'c':
                             case 'w':
                                 // ignore
                                 break;
-                            case 'z':
+                            case 'j':
+                                if (lastCharacter == 's' || lastCharacter == 't' || lastCharacter == 'k')
+                                    value = 6; // sj/tj/kj sounds
+                                break;
                             case 's':
-                                value = 0;
+                                if (char.ToLower(c) == 'j')
+                                    value = 6; // sj sound
+                                else
+                                    value = 0;
+                                break;
+                            case 't':
+                                if (char.ToLower(c) == 'j')
+                                    value = 6; // tj sound
+                                else
+                                    value = 1;
                                 break;
                             case 'd':
-                            case 't':
                                 value = 1;
                                 break;
                             case 'n':
@@ -348,11 +358,13 @@ namespace MemoryWords
                             case 'l':
                                 value = 5;
                                 break;
-                            case 'j':
-                            case 'g':
-                                value = 6;
-                                break;
                             case 'k':
+                                if (char.ToLower(c) == 'j')
+                                    value = 6; // kj sound
+                                else
+                                    value = 7;
+                                break;
+                            case 'g':
                                 value = 7;
                                 break;
                             case 'f':
@@ -459,29 +471,35 @@ namespace MemoryWords
             // Check for -r/--rules flag first
             if (args.Contains("-r") || args.Contains("--rules"))
             {
-                Console.WriteLine("Mnemonic Major System Rules:\n");
-                Console.WriteLine("0 = S, Z        (think \"ZERO\" starts with 'Z')");
-                Console.WriteLine("1 = T, D        (think 'T' has one downstroke)");
-                Console.WriteLine("2 = N           (think 'N' has two downstrokes)");
-                Console.WriteLine("3 = M           (think 'M' has three downstrokes)");
-                Console.WriteLine("4 = R           (last letter of 'FOUR')");
-                Console.WriteLine("5 = L           (roman numeral 'L' = 50)");
-                Console.WriteLine("6 = J, G        (reversed 'J' looks like '6')");
-                Console.WriteLine("7 = K           (think 'K' contains two '7's)");
-                Console.WriteLine("8 = F, V        ('F' looks like '8')");
-                Console.WriteLine("9 = P, B        ('P' is a mirror of '9')\n");
-                Console.WriteLine("Or in Norwegian:");
-                Console.WriteLine("\n0 = S, Z        (tenk på 'SIRKEL' eller '0' på engelsk 'ZERO')");
-                Console.WriteLine("1 = T, D        (tenk på at 'T' har én nedstrek)");
-                Console.WriteLine("2 = N           (tenk på at 'N' har to nedstreker)");
-                Console.WriteLine("3 = M           (tenk på at 'M' har tre nedstreker)");
-                Console.WriteLine("4 = R           (tenk på at 'FIRE' inneholder 'R', eller 'R som i rein, fire bein')");
-                Console.WriteLine("5 = L           (tenk på romertallet 'L' som er 50)");
-                Console.WriteLine("6 = J, G        (tenk på at speilvendt 'J' ligner på '6')");
-                Console.WriteLine("7 = K           (tenk på at 'K' inneholder to '7'-tall)");
-                Console.WriteLine("8 = F, V        (tenk på at 'F' ligner på '8')");
-                Console.WriteLine("9 = P, B        (tenk på at 'P' er speilvendt '9')\n");
-                Console.WriteLine("Note: Vowels (A, E, I, O, U, Y, Æ, Ø, Å) and some consonants (H, W, C) are ignored.");
+                Console.WriteLine("The Mnemonic major system is a memory technique that converts numbers into consonant sounds,");
+                Console.WriteLine("which can then be combined with vowels to create words. This makes it easier to remember long");
+                Console.WriteLine("sequences of numbers by converting them into more memorable words or phrases.\n");
+
+                Console.WriteLine("Original System:\n");
+                Console.WriteLine("0 = S, Z        Zero begins with Z. Other letters sound similar when spoken.");
+                Console.WriteLine("1 = T, D        t and d each have one downstroke, and sound similar when voiced.");
+                Console.WriteLine("2 = N           n has two downstrokes when written.");
+                Console.WriteLine("3 = M           m has three downstrokes when written.");
+                Console.WriteLine("4 = R           Last letter of 'fouR'");
+                Console.WriteLine("5 = L           Roman numeral 'L' = 50");
+                Console.WriteLine("6 = CH, J, SH   j has a curve near the bottom, like 6 does");
+                Console.WriteLine("7 = K, G        'K' contains two '7's");
+                Console.WriteLine("8 = F, V        I associate V with V8. F sounds like V when spoken.'F' looks like '8'");
+                Console.WriteLine("9 = P, B        9 rotated 180 degrees looks like b. 9 flipped horizontally looks like P.\n");
+
+                Console.WriteLine("Norwegian Adaptation:\n");
+                Console.WriteLine("0 = S, Z        S som i 'Sirkel', Z som i 'Zero'");
+                Console.WriteLine("1 = T, D        t og d har én nedstrek");
+                Console.WriteLine("2 = N           n har to nedstreker");
+                Console.WriteLine("3 = M           m har to nedstreker");
+                Console.WriteLine("4 = R           tenk på 'fiRe', eller 'R som i rein, fire bein'");
+                Console.WriteLine("5 = L           Romertallet 'L' er 50");
+                Console.WriteLine("6 = SJ, KJ, TJ  'Sjø', 'Skje', 'Kjede', 'Tjue'. J har en kurve nederst slik som 6 har");
+                Console.WriteLine("7 = K, G        'K' inneholder to '7'-tall");
+                Console.WriteLine("8 = F, V        Jeg assosierer V med V8. F lyder som V når den uttales. 'F' ligner på '8'");
+                Console.WriteLine("9 = P, B        9 rotert 180 grader ser ut som b. 9 speilvendt ser ut som P.\n");
+
+                Console.WriteLine("Note: Vowels (A, E, I, O, U, Y, Æ, Ø, Å) and some consonants (H, W, C) are ignored,");
                 return;
             }
 
