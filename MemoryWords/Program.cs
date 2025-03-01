@@ -325,19 +325,19 @@ namespace MemoryWords
             sentence = sentence.ToLowerInvariant();
             List<byte> digits = new List<byte>();
 
-            // Regex to match phonemes, vowels, and spaces in order (sj, skj, tj, kj first, then single letters, vowels, and spaces)
-            string pattern = @"(sj|skj|tj|kj|[sztdnmrlkgfvpb])|(" + _oneOrMoreVowels + @"|(\s+))";
+            // Match phonemes and ignored characters (vowels and spaces)
+            string pattern = @"(sj|skj|tj|kj|[sztdnmrlkgfvpb])|(" + _oneOrMoreVowels + @"|\s+)";
             MatchCollection matches = Regex.Matches(sentence, pattern);
 
             byte? lastDigit = null;
-            bool hasVowelSinceLastDigit = false;
+            bool hasVowelOrSpaceSinceLastDigit = false;
 
             foreach (Match match in matches)
             {
-                // Check if this match is a vowel
+                // Check if this is a vowel or space
                 if (match.Groups[2].Success)
                 {
-                    hasVowelSinceLastDigit = true;
+                    hasVowelOrSpaceSinceLastDigit = true;
                     continue;
                 }
 
@@ -345,12 +345,12 @@ namespace MemoryWords
                 if (PhonemeToDigit.ContainsKey(phoneme))
                 {
                     byte currentDigit = PhonemeToDigit[phoneme];
-                    // Add the digit if it's different from the last one OR if we've seen vowels since the last digit
-                    if (!lastDigit.HasValue || lastDigit.Value != currentDigit || hasVowelSinceLastDigit)
+                    // Add the digit if it's different from the last one OR if we've seen vowels/spaces since the last digit
+                    if (!lastDigit.HasValue || lastDigit.Value != currentDigit || hasVowelOrSpaceSinceLastDigit)
                     {
                         digits.Add(currentDigit);
                         lastDigit = currentDigit;
-                        hasVowelSinceLastDigit = false;
+                        hasVowelOrSpaceSinceLastDigit = false;
                     }
                 }
             }
@@ -366,26 +366,24 @@ namespace MemoryWords
 
             sentence = sentence.ToLowerInvariant();
             List<string> mnemonicParts = new List<string>();
-            string pattern = @"(sj|skj|tj|kj|[sztdnmrlkgfvpb])|(" + _oneOrMoreVowels + @"|(\s+))";
+            string pattern = @"(sj|skj|tj|kj|[sztdnmrlkgfvpb])|(" + _oneOrMoreVowels + @"|\s+)";
             MatchCollection matches = Regex.Matches(sentence, pattern);
 
             byte? lastDigit = null;
             string? lastPhoneme = null;
-            bool hasVowelSinceLastDigit = false;
+            bool hasVowelOrSpaceSinceLastDigit = false;
 
             foreach (Match match in matches)
             {
-                // Check if this is a vowel
+                // Check if this is a vowel or space
                 if (match.Groups[2].Success)
                 {
-                    hasVowelSinceLastDigit = true;
-                    mnemonicParts.Add($"[{match.Value}]"); // Show vowels in brackets
-                    continue;
-                }
-                // Check if this is a space
-                if (match.Groups[3].Success)
-                {
-                    mnemonicParts.Add("[space]");
+                    hasVowelOrSpaceSinceLastDigit = true;
+                    // Show spaces as [space], other characters in brackets
+                    if (string.IsNullOrWhiteSpace(match.Value))
+                        mnemonicParts.Add("[space]");
+                    else
+                        mnemonicParts.Add($"[{match.Value}]"); // Show vowels in brackets
                     continue;
                 }
 
@@ -394,12 +392,12 @@ namespace MemoryWords
                 {
                     byte currentDigit = PhonemeToDigit[phoneme];
                     // Add the phoneme if it's different from the last one OR if we've seen vowels since the last digit
-                    if (!lastDigit.HasValue || lastDigit.Value != currentDigit || hasVowelSinceLastDigit)
+                    if (!lastDigit.HasValue || lastDigit.Value != currentDigit || hasVowelOrSpaceSinceLastDigit)
                     {
                         mnemonicParts.Add($"{phoneme}({currentDigit})");
                         lastDigit = currentDigit;
                         lastPhoneme = phoneme;
-                        hasVowelSinceLastDigit = false;
+                        hasVowelOrSpaceSinceLastDigit = false;
                     }
                     else
                     {
@@ -513,7 +511,7 @@ namespace MemoryWords
         /// <summary>
         /// The main entry point of the application.
         /// This method performs tests using different dictionaries and digits based on command line arguments.
-        /// E.g. use dotnet run -- -a 314159265358979
+        /// E.g. use dotnet run -- -a 314159265358
         /// </summary>
         public static void Main(string[] args)
         {
@@ -648,7 +646,8 @@ namespace MemoryWords
                 // string defaultDigits = "74818471"; // kraftverket
                 // string defaultDigits = "034101521"; // smertestillende
                 // string defaultDigits = "03918284226"; // småbåtvenneforening
-                string defaultDigits = "314159265358979"; // PI short
+                string defaultDigits = "314159265358"; // PI 11 digits
+                // string defaultDigits = "31415926535897932384"; // PI 20 digits
                 // string defaultDigits = "314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651";
                 // string defaultDigits = "05721184084105791485091641940564691959501972917284624120958121584129557914181849214842841226184084612846419491230290748494107908502039150121418543492858012042158641202054157914203849850032319410790149284059511014718531484972";
                 Console.WriteLine("Could not find any digits to use. Using default digits {0}\n", defaultDigits);

@@ -229,4 +229,49 @@ public class NorwegianPhoneticsTests
         // Assert
         Assert.True(result);
     }
+
+    [Fact]
+    public void ToMnemonic_SumMusStor_ShouldMapCorrectly()
+    {
+        // Arrange
+        string input = "sum mus stor";
+        string expected = "s(0) [u] m(3) [space] m(3) [u] s(0) [space] s(0) t(1) [o] r(4)";
+
+        // Act
+        string result = Program.ToMnemonic(input);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void ToMnemonic_KjokkenHandkle_ShouldMapCorrectly()
+    {
+        // Arrange
+        string input = "kjøkkenhåndkle";
+        string expected = "kj(6) [ø] kk(7) [e] n(2) [hå] n(2) d(1) k(7) l(5) [e]";
+
+        // Act
+        string result = Program.ToMnemonic(input);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void ParseDigitsAndToMnemonic_ComplexSentence_ShouldMapCorrectly()
+    {
+        // Arrange
+        string input = "motorhotell penkjole milf byggeboomen omveier";
+        byte[] expectedDigits = new byte[] { 3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4 };
+        string expectedMnemonic = "m(3) [o] t(1) [o] r(4) [ho] t(1) [e] ll(5) [space] p(9) [e] n(2) kj(6) [o] l(5) [e] [space] m(3) [i] l(5) f(8) [space] b(9) [y] gg(7) [e] b(9) [oo] m(3) [e] n(2) [space] [o] m(3) v(8) [eie] r(4)";
+
+        // Act
+        byte[] digits = Program.ParseDigits(input);
+        string mnemonic = Program.ToMnemonic(input);
+
+        // Assert
+        Assert.Equal(expectedDigits, digits);
+        Assert.Equal(expectedMnemonic, mnemonic);
+    }
 }
