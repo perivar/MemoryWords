@@ -8,6 +8,12 @@ The Mnemonic major system is a memory technique that converts numbers into conso
 
 ### How it Works
 
+You can read more about the original Mnemonic Major System here:
+
+- [Major System Reference Guide](https://collegeinfogeek.com/major-mnemonic-system-reference/)
+- [Major System Info](https://major-system.info/)
+- [Wikipedia - Mnemonic Major System](https://en.wikipedia.org/wiki/Mnemonic_major_system)
+
 The original Mnemonic Major System maps numbers to consonant sounds as follows:
 
 | Digit | Speech Sounds (IPA) | Associated Letters & Examples | Notes |
@@ -32,7 +38,7 @@ The Norwegian adaptation:
 
 | Digit | Speech Sounds (IPA) | Associated Letters & Examples | Notes |
 |-------|-------------------|---------------------------|-------|
-| 0 | /s/, /z/ | S som i 'Sirkel', Z som i 'Zero' | 'SIRKEL' eller '0' på engelsk 'ZERO' |
+| 0 | /s/, /z/ | S som i 'Sirkel', Z som i 'Zalo' | 'Sirkel' eller '0' på engelsk 'ZERO' |
 | 1 | /t/, /d/ | T som i 'Tal', D som i 'Dal' | t og d har én nedstrek |
 | 2 | /n/ | N som i 'Nei' | n har to nedstreker |
 | 3 | /m/ | M som i 'Meg' | m har tre nedstreker |

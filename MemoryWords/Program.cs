@@ -8,7 +8,7 @@ namespace MemoryWords
         private static readonly Encoding _isoLatin1Encoding = Encoding.GetEncoding("ISO-8859-1");
         private static readonly Encoding _utf8Encoding = Encoding.UTF8;
 
-        private const string _vowels = "[aeiouyæøåhwc]"; // vowels and non-used characters (hwc)
+        private const string _vowels = "[aeiouyæøåhjwc]"; // vowels and non-used characters (hjwc)
 
         private const string _zeroOrMoreVowels = _vowels + "*";
         private const string _oneOrMoreVowels = _vowels + "+";
@@ -549,7 +549,7 @@ namespace MemoryWords
                 Console.WriteLine("9 = P, B        9 rotated 180 degrees looks like b. 9 flipped horizontally looks like P.\n");
 
                 Console.WriteLine("Norwegian Adaptation:\n");
-                Console.WriteLine("0 = S, Z        S som i 'Sirkel', Z som i 'Zero'");
+                Console.WriteLine("0 = S, Z        S som i 'Sirkel' eller '0' på engelsk 'ZERO'");
                 Console.WriteLine("1 = T, D        t og d har én nedstrek");
                 Console.WriteLine("2 = N           n har to nedstreker");
                 Console.WriteLine("3 = M           m har to nedstreker");
